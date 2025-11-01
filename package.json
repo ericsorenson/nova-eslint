@@ -1,0 +1,29 @@
+{
+  "name": "nova-eslint",
+  "version": "1.0.0",
+  "description": "ESLint integration for the Nova code editor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint eslint.novaextension/Scripts/**/*.js",
+    "lint:fix": "eslint --fix eslint.novaextension/Scripts/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/esorenson/nova-eslint.git"
+  },
+  "keywords": [
+    "nova",
+    "extension",
+    "eslint",
+    "linter"
+  ],
+  "author": "Eric Sorenson",
+  "license": "MIT",
+  "dependencies": {
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2"
+  }
+}
