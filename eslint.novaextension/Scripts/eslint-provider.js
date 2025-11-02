@@ -1,12 +1,23 @@
 const ESLintRunner = require('./eslint-runner.js');
 const { convertESLintMessagesToIssues } = require('./eslint-utils.js');
 
-// Severity mapping (constant to avoid recreation on every lint)
+// Constants
 const SEVERITY_MAP = {
   error: IssueSeverity.Error,
   info: IssueSeverity.Info,
   warning: IssueSeverity.Warning,
 };
+
+const NOTIFICATION_ID_NOT_FOUND = 'eslint-not-found';
+const NOTIFICATION_ID_CONFIG_ERROR = 'eslint-config-error';
+const NOTIFICATION_TITLE_NOT_FOUND = 'ESLint Not Found';
+const NOTIFICATION_TITLE_CONFIG_ERROR = 'ESLint Configuration Error';
+const NOTIFICATION_BODY_NOT_FOUND =
+  'ESLint is not installed in this project. Install it with:\n\nnpm install --save-dev eslint';
+
+const CONFIG_KEY_ENABLE = 'eslint.enable';
+const DEBOUNCE_DELAY_MS = 300;
+const ISSUE_SOURCE = 'ESLint';
 
 /**
  * ESLintProvider - Nova issue assistant for ESLint
@@ -36,7 +47,7 @@ class ESLintProvider {
       issue.line = obj.line;
       issue.column = obj.column;
       issue.severity = SEVERITY_MAP[obj.severity] || IssueSeverity.Info;
-      issue.source = 'ESLint';
+      issue.source = ISSUE_SOURCE;
 
       if (obj.code) issue.code = obj.code;
       if (obj.endLine) issue.endLine = obj.endLine;
@@ -77,13 +88,13 @@ class ESLintProvider {
     const notifications = {
       failed: {
         body: error.message,
-        id: 'eslint-config-error',
-        title: 'ESLint Configuration Error',
+        id: NOTIFICATION_ID_CONFIG_ERROR,
+        title: NOTIFICATION_TITLE_CONFIG_ERROR,
       },
       'not found': {
-        body: 'ESLint is not installed in this project. Install it with:\n\nnpm install --save-dev eslint',
-        id: 'eslint-not-found',
-        title: 'ESLint Not Found',
+        body: NOTIFICATION_BODY_NOT_FOUND,
+        id: NOTIFICATION_ID_NOT_FOUND,
+        title: NOTIFICATION_TITLE_NOT_FOUND,
       },
     };
 
@@ -140,7 +151,7 @@ class ESLintProvider {
    * @returns {Promise<Issue[]>}
    */
   async provideIssues(editor) {
-    if (!nova.config.get('eslint.enable', 'boolean')) {
+    if (!nova.config.get(CONFIG_KEY_ENABLE, 'boolean')) {
       return [];
     }
 
@@ -187,7 +198,7 @@ class ESLintProvider {
         } finally {
           this.activeLints.delete(uri);
         }
-      }, 300); // 300ms debounce
+      }, DEBOUNCE_DELAY_MS);
 
       this.pendingLints.set(uri, timeout);
     });

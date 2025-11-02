@@ -1,3 +1,14 @@
+// Constants
+const CONFIG_KEY_EXECUTABLE_PATH = 'eslint.executablePath';
+const CONFIG_KEY_CONFIG_PATH = 'eslint.configPath';
+const PROCESS_TIMEOUT_MS = 30000;
+const NODE_COMMAND = '/usr/bin/env';
+const ESLINT_FORMAT = 'json';
+const ESLINT_CANDIDATES = [
+  'node_modules/.bin/eslint',
+  'node_modules/eslint/bin/eslint.js',
+];
+
 /**
  * ESLintRunner - Handles finding and executing ESLint
  */
@@ -16,7 +27,13 @@ class ESLintRunner {
    * @returns {string[]}
    */
   buildArgs(filePath, ...extraArgs) {
-    const args = [this.eslintPath, '--format', 'json', ...extraArgs, filePath];
+    const args = [
+      this.eslintPath,
+      '--format',
+      ESLINT_FORMAT,
+      ...extraArgs,
+      filePath,
+    ];
 
     const configPath = this.getConfigPath();
     if (configPath) {
@@ -73,7 +90,7 @@ class ESLintRunner {
    */
   executeESLint(args, stdinContent) {
     return new Promise((resolve, reject) => {
-      const process = new Process('/usr/bin/env', {
+      const process = new Process(NODE_COMMAND, {
         args: ['node', ...args],
         cwd: this.workspacePath,
       });
@@ -137,7 +154,7 @@ class ESLintRunner {
       try {
         process.start();
 
-        // Set timeout to kill hung processes (30 seconds)
+        // Set timeout to kill hung processes
         processTimeout = setTimeout(() => {
           if (settled) return;
           settled = true;
@@ -149,8 +166,12 @@ class ESLintRunner {
             // Process might already be dead
           }
 
-          reject(new Error('ESLint process timed out after 30 seconds'));
-        }, 30000);
+          reject(
+            new Error(
+              `ESLint process timed out after ${PROCESS_TIMEOUT_MS / 1000} seconds`,
+            ),
+          );
+        }, PROCESS_TIMEOUT_MS);
 
         // If stdin content provided, write it to the process
         if (stdinContent !== undefined) {
@@ -202,7 +223,9 @@ class ESLintRunner {
     }
 
     // Check user-configured path first
-    const configuredPath = nova.workspace.config.get('eslint.executablePath');
+    const configuredPath = nova.workspace.config.get(
+      CONFIG_KEY_EXECUTABLE_PATH,
+    );
     if (configuredPath) {
       const fullPath = this.resolveExecutablePath(configuredPath);
       if (fullPath && this.isExecutable(fullPath)) {
@@ -211,12 +234,7 @@ class ESLintRunner {
     }
 
     // Try common locations
-    const candidates = [
-      'node_modules/.bin/eslint',
-      'node_modules/eslint/bin/eslint.js',
-    ];
-
-    for (const candidate of candidates) {
+    for (const candidate of ESLINT_CANDIDATES) {
       const fullPath = nova.path.join(this.workspacePath, candidate);
       if (this.isExecutable(fullPath)) {
         return fullPath;
@@ -249,7 +267,7 @@ class ESLintRunner {
       return this.cachedConfigPath;
     }
 
-    const customConfig = nova.workspace.config.get('eslint.configPath');
+    const customConfig = nova.workspace.config.get(CONFIG_KEY_CONFIG_PATH);
     if (customConfig) {
       this.cachedConfigPath = nova.path.join(this.workspacePath, customConfig);
       return this.cachedConfigPath;
@@ -300,7 +318,7 @@ class ESLintRunner {
     const args = [
       this.eslintPath,
       '--format',
-      'json',
+      ESLINT_FORMAT,
       '--stdin',
       '--stdin-filename',
       filePath,

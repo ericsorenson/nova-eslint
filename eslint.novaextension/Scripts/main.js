@@ -3,7 +3,12 @@ console.log('ESLint main.js loaded');
 
 const ESLintProvider = require('./eslint-provider.js');
 
+// Constants
 const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];
+const CONFIG_KEY_LINT_ON_CHANGE = 'eslint.lintOnChange';
+const CONFIG_KEY_FIX_ON_SAVE = 'eslint.fixOnSave';
+const CONFIG_KEY_EXECUTABLE_PATH = 'eslint.executablePath';
+const CONFIG_KEY_CONFIG_PATH = 'eslint.configPath';
 
 let provider = null;
 let assistantDisposable = null;
@@ -25,7 +30,7 @@ exports.activate = function () {
 
   // Watch for configuration changes
   disposables.push(
-    nova.config.onDidChange('eslint.lintOnChange', _value => {
+    nova.config.onDidChange(CONFIG_KEY_LINT_ON_CHANGE, _value => {
       // Re-register with new event type
       if (assistantDisposable) {
         assistantDisposable.dispose();
@@ -36,7 +41,7 @@ exports.activate = function () {
 
   // Watch for workspace config changes (executable path and config path)
   disposables.push(
-    nova.workspace.config.onDidChange('eslint.executablePath', () => {
+    nova.workspace.config.onDidChange(CONFIG_KEY_EXECUTABLE_PATH, () => {
       if (provider && provider.runner) {
         provider.runner.clearCache();
       }
@@ -44,7 +49,7 @@ exports.activate = function () {
   );
 
   disposables.push(
-    nova.workspace.config.onDidChange('eslint.configPath', () => {
+    nova.workspace.config.onDidChange(CONFIG_KEY_CONFIG_PATH, () => {
       if (provider && provider.runner) {
         provider.runner.clearCache();
       }
@@ -80,7 +85,7 @@ exports.deactivate = function () {
  * Register the issue assistant with appropriate event
  */
 function registerIssueAssistant() {
-  const lintOnChange = nova.config.get('eslint.lintOnChange', 'boolean');
+  const lintOnChange = nova.config.get(CONFIG_KEY_LINT_ON_CHANGE, 'boolean');
   const event = lintOnChange ? 'onChange' : 'onSave';
 
   console.log(`Registering ESLint issue assistant with event: ${event}`);
@@ -101,7 +106,7 @@ function setupFixOnSave() {
       // Use WeakMap to store editor-specific disposable
       // This prevents memory leak as WeakMap entries are GC'd when editor is destroyed
       const saveDisposable = editor.onDidSave(async editor => {
-        if (!nova.config.get('eslint.fixOnSave', 'boolean')) return;
+        if (!nova.config.get(CONFIG_KEY_FIX_ON_SAVE, 'boolean')) return;
         if (!editor.document.path) return;
         if (!SUPPORTED_LANGUAGES.includes(editor.document.syntax)) return;
         if (!provider || !provider.runner) {

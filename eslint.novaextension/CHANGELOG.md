@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2024-11-02
+## [0.0.1]
 
 ### Added
 - Initial development release
@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration error notifications
 - Debounced linting (300ms) for better performance
 - Respects ESLint configuration and ignore patterns
+- Minimum runtime version requirement (Nova 11.0+)
 
 ### Performance Optimizations
 - Uses `--stdin` to pass content directly to ESLint (eliminates temp file I/O)
@@ -31,12 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Global: Enable/disable ESLint, lint on save, lint on change, fix on save
 - Workspace: Custom ESLint executable path, custom config file path
 
-### Technical Details
-- Comprehensive test suite with 16 passing tests
+### Code Quality
+- **Comprehensive test suite with 62 passing tests**
+  - ~95% line coverage, ~94% branch coverage
+  - ESLintRunner: 87.88% line coverage
+  - Tests cover process execution, ESLint discovery, error handling, exit codes, stdin/stdout, and timeouts
 - Clean code with ESLint validation
 - Modular architecture with separate provider and runner components
 - Proper error handling and user notifications
+- Magic strings extracted to constants for better maintainability
 
 ### Known Limitations
-- This is a pre-release version for testing
 - ESLint must be installed locally in each project
