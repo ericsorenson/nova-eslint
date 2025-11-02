@@ -1,12 +1,12 @@
 {
   "name": "nova-eslint",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "ESLint integration for the Nova code editor",
   "private": true,
-  "type": "module",
   "scripts": {
-    "lint": "eslint eslint.novaextension/Scripts/**/*.js",
-    "lint:fix": "eslint --fix eslint.novaextension/Scripts/**/*.js"
+    "test": "node --test eslint.novaextension/Scripts/**/*.test.js",
+    "lint": "eslint eslint.novaextension/**/*.js eslint.config.mjs",
+    "lint:fix": "eslint --fix eslint.novaextension/**/*.js eslint.config.mjs"
   },
   "repository": {
     "type": "git",

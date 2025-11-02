@@ -1,0 +1,68 @@
+{
+  "identifier": "software.sorenson.eslint",
+  "name": "ESLint",
+  "organization": "Eric Sorenson",
+  "description": "Integrates ESLint into Nova for JavaScript and TypeScript linting",
+  "version": "0.0.1",
+  "categories": ["issues", "commands"],
+  "license": "MIT",
+  "repository": "https://github.com/esorenson/nova-eslint",
+  "bugs": "https://github.com/esorenson/nova-eslint/issues",
+  "main": "main.js",
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:jsx",
+    "onLanguage:tsx"
+  ],
+  "entitlements": {
+    "process": true,
+    "filesystem": "readwrite"
+  },
+  "config": [
+    {
+      "key": "eslint.enable",
+      "title": "Enable ESLint",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable ESLint linting"
+    },
+    {
+      "key": "eslint.lintOnSave",
+      "title": "Lint on Save",
+      "type": "boolean",
+      "default": true,
+      "description": "Run ESLint when saving files"
+    },
+    {
+      "key": "eslint.lintOnChange",
+      "title": "Lint on Change",
+      "type": "boolean",
+      "default": true,
+      "description": "Run ESLint as you type (debounced 300ms)"
+    },
+    {
+      "key": "eslint.fixOnSave",
+      "title": "Fix on Save",
+      "type": "boolean",
+      "default": false,
+      "description": "Automatically apply ESLint fixes when saving files"
+    }
+  ],
+  "configWorkspace": [
+    {
+      "key": "eslint.executablePath",
+      "title": "ESLint Executable",
+      "type": "path",
+      "placeholder": "node_modules/.bin/eslint",
+      "description": "Path to ESLint executable (relative to workspace or absolute)"
+    },
+    {
+      "key": "eslint.configPath",
+      "title": "Config File",
+      "type": "path",
+      "placeholder": "eslint.config.js",
+      "description": "Path to ESLint configuration file (relative to workspace)"
+    }
+  ]
+}
