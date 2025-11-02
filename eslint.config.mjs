@@ -1,60 +1,48 @@
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslint from '@eslint/js';
+import perfectionist from 'eslint-plugin-perfectionist';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 
 export default [
   eslint.configs.recommended,
+  perfectionist.configs['recommended-natural'],
   {
     files: ['eslint.novaextension/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'commonjs',
       globals: {
-        // Nova global objects
-        nova: 'readonly',
-        console: 'readonly',
-
-        // Nova API classes
-        Process: 'readonly',
-        Range: 'readonly',
-        Issue: 'readonly',
-        IssueSeverity: 'readonly',
-        IssueCollection: 'readonly',
-        NotificationRequest: 'readonly',
-        CompositeDisposable: 'readonly',
-
-        // CommonJS
-        require: 'readonly',
-        module: 'readonly',
-        exports: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
-
-        // Node.js globals
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        setImmediate: 'readonly',
         clearImmediate: 'readonly',
+        clearInterval: 'readonly',
+        clearTimeout: 'readonly',
+        CompositeDisposable: 'readonly',
+        console: 'readonly',
+        exports: 'readonly',
+        Issue: 'readonly',
+        IssueCollection: 'readonly',
+        IssueSeverity: 'readonly',
+        module: 'readonly',
+        NotificationRequest: 'readonly',
+        nova: 'readonly',
+        Process: 'readonly',
+        Range: 'readonly',
+        require: 'readonly',
+        setImmediate: 'readonly',
+        setInterval: 'readonly',
+        setTimeout: 'readonly',
       },
+      sourceType: 'commonjs',
     },
     rules: {
-      // Possible Errors
       'no-console': 'off', // We use console.log for debugging
       'no-unused-vars': [
         'warn',
         {
           argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
-
-      // Best Practices
-      eqeqeq: ['error', 'always'],
-      'no-var': 'error',
-      'prefer-const': 'warn',
-      'prefer-arrow-callback': 'warn',
     },
   },
   {
@@ -69,18 +57,13 @@ export default [
         'warn',
         {
           argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
-      eqeqeq: ['error', 'always'],
-      'no-var': 'error',
-      'prefer-const': 'warn',
-      'prefer-arrow-callback': 'warn',
     },
   },
   {
-    // Ignore patterns
     ignores: ['node_modules/**', 'test.js'],
   },
   eslintPluginPrettierRecommended,

@@ -9,105 +9,6 @@ class ESLintRunner {
   }
 
   /**
-   * Find ESLint executable in workspace
-   * @returns {string|null} Path to ESLint or null if not found
-   */
-  findESLint() {
-    if (!this.workspacePath) {
-      return null;
-    }
-
-    // Check user-configured path first
-    const configuredPath = nova.workspace.config.get('eslint.executablePath');
-    if (configuredPath) {
-      const fullPath = this.resolveExecutablePath(configuredPath);
-      if (fullPath && this.isExecutable(fullPath)) {
-        return fullPath;
-      }
-    }
-
-    // Try common locations
-    const candidates = [
-      'node_modules/.bin/eslint',
-      'node_modules/eslint/bin/eslint.js',
-    ];
-
-    for (const candidate of candidates) {
-      const fullPath = nova.path.join(this.workspacePath, candidate);
-      if (this.isExecutable(fullPath)) {
-        return fullPath;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Resolve executable path (handle relative vs absolute)
-   * @param {string} path
-   * @returns {string}
-   */
-  resolveExecutablePath(path) {
-    if (nova.path.isAbsolute(path)) {
-      return path;
-    }
-    return nova.path.join(this.workspacePath, path);
-  }
-
-  /**
-   * Check if a file exists and is executable
-   * @param {string} path
-   * @returns {boolean}
-   */
-  isExecutable(path) {
-    try {
-      const stat = nova.fs.stat(path);
-      if (!stat) {
-        return false;
-      }
-
-      // Check if file is readable (we'll execute via node)
-      return nova.fs.access(path, nova.fs.constants.R_OK);
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Ensure ESLint is found
-   * @throws {Error} If ESLint is not found
-   */
-  ensureESLint() {
-    if (!this.eslintPath) {
-      this.eslintPath = this.findESLint();
-    }
-    if (!this.eslintPath) {
-      throw new Error(
-        'ESLint executable not found. Install ESLint in your project: npm install --save-dev eslint',
-      );
-    }
-  }
-
-  /**
-   * Get the resolved config path (cached)
-   * @returns {string|null}
-   */
-  getConfigPath() {
-    if (this.cachedConfigPath !== null) {
-      return this.cachedConfigPath;
-    }
-
-    const customConfig = nova.workspace.config.get('eslint.configPath');
-    if (customConfig) {
-      this.cachedConfigPath = nova.path.join(this.workspacePath, customConfig);
-      return this.cachedConfigPath;
-    }
-
-    this.cachedConfigPath = false; // Explicitly cache "no config"
-    return null;
-  }
-
-  /**
    * Build ESLint arguments with optional config
    * @param {string} filePath - File to lint
    * @param {...string} extraArgs - Additional arguments
@@ -125,38 +26,26 @@ class ESLintRunner {
   }
 
   /**
-   * Run ESLint on a file
-   * @param {string} filePath - Absolute path to the file
-   * @returns {Promise<Object>} ESLint result object
+   * Clear cached ESLint path and config (useful when config changes)
    */
-  async lint(filePath) {
-    this.ensureESLint();
-    return this.executeESLint(this.buildArgs(filePath));
+  clearCache() {
+    this.eslintPath = null;
+    this.cachedConfigPath = null;
   }
 
   /**
-   * Run ESLint on content via stdin (avoids temp file I/O)
-   * @param {string} content - File content to lint
-   * @param {string} filePath - Path for context (used by ESLint for config)
-   * @returns {Promise<Object>} ESLint result object
+   * Ensure ESLint is found
+   * @throws {Error} If ESLint is not found
    */
-  async lintContent(content, filePath) {
-    this.ensureESLint();
-    const args = [
-      this.eslintPath,
-      '--format',
-      'json',
-      '--stdin',
-      '--stdin-filename',
-      filePath,
-    ];
-
-    const configPath = this.getConfigPath();
-    if (configPath) {
-      args.push('--config', configPath);
+  ensureESLint() {
+    if (!this.eslintPath) {
+      this.eslintPath = this.findESLint();
     }
-
-    return this.executeESLint(args, content);
+    if (!this.eslintPath) {
+      throw new Error(
+        'ESLint executable not found. Install ESLint in your project: npm install --save-dev eslint',
+      );
+    }
   }
 
   /**
@@ -229,6 +118,40 @@ class ESLintRunner {
   }
 
   /**
+   * Find ESLint executable in workspace
+   * @returns {string|null} Path to ESLint or null if not found
+   */
+  findESLint() {
+    if (!this.workspacePath) {
+      return null;
+    }
+
+    // Check user-configured path first
+    const configuredPath = nova.workspace.config.get('eslint.executablePath');
+    if (configuredPath) {
+      const fullPath = this.resolveExecutablePath(configuredPath);
+      if (fullPath && this.isExecutable(fullPath)) {
+        return fullPath;
+      }
+    }
+
+    // Try common locations
+    const candidates = [
+      'node_modules/.bin/eslint',
+      'node_modules/eslint/bin/eslint.js',
+    ];
+
+    for (const candidate of candidates) {
+      const fullPath = nova.path.join(this.workspacePath, candidate);
+      if (this.isExecutable(fullPath)) {
+        return fullPath;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Run ESLint --fix on a file and return fixed content
    * @param {string} filePath - Absolute path to the file
    * @returns {Promise<string|null>} Fixed content or null if no fixes
@@ -242,11 +165,88 @@ class ESLintRunner {
   }
 
   /**
-   * Clear cached ESLint path and config (useful when config changes)
+   * Get the resolved config path (cached)
+   * @returns {string|null}
    */
-  clearCache() {
-    this.eslintPath = null;
-    this.cachedConfigPath = null;
+  getConfigPath() {
+    if (this.cachedConfigPath !== null) {
+      return this.cachedConfigPath;
+    }
+
+    const customConfig = nova.workspace.config.get('eslint.configPath');
+    if (customConfig) {
+      this.cachedConfigPath = nova.path.join(this.workspacePath, customConfig);
+      return this.cachedConfigPath;
+    }
+
+    this.cachedConfigPath = false; // Explicitly cache "no config"
+    return null;
+  }
+
+  /**
+   * Check if a file exists and is executable
+   * @param {string} path
+   * @returns {boolean}
+   */
+  isExecutable(path) {
+    try {
+      const stat = nova.fs.stat(path);
+      if (!stat) {
+        return false;
+      }
+
+      // Check if file is readable (we'll execute via node)
+      return nova.fs.access(path, nova.fs.constants.R_OK);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Run ESLint on a file
+   * @param {string} filePath - Absolute path to the file
+   * @returns {Promise<Object>} ESLint result object
+   */
+  async lint(filePath) {
+    this.ensureESLint();
+    return this.executeESLint(this.buildArgs(filePath));
+  }
+
+  /**
+   * Run ESLint on content via stdin (avoids temp file I/O)
+   * @param {string} content - File content to lint
+   * @param {string} filePath - Path for context (used by ESLint for config)
+   * @returns {Promise<Object>} ESLint result object
+   */
+  async lintContent(content, filePath) {
+    this.ensureESLint();
+    const args = [
+      this.eslintPath,
+      '--format',
+      'json',
+      '--stdin',
+      '--stdin-filename',
+      filePath,
+    ];
+
+    const configPath = this.getConfigPath();
+    if (configPath) {
+      args.push('--config', configPath);
+    }
+
+    return this.executeESLint(args, content);
+  }
+
+  /**
+   * Resolve executable path (handle relative vs absolute)
+   * @param {string} path
+   * @returns {string}
+   */
+  resolveExecutablePath(path) {
+    if (nova.path.isAbsolute(path)) {
+      return path;
+    }
+    return nova.path.join(this.workspacePath, path);
   }
 }
 

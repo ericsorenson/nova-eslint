@@ -3,34 +3,35 @@
  * Run with: node --test eslint-utils.test.js
  */
 
-const { describe, test } = require('node:test');
 const assert = require('node:assert/strict');
+const { describe, test } = require('node:test');
+
 const {
   convertESLintMessagesToIssues,
-  parseESLintOutput,
   findESLintExecutable,
+  parseESLintOutput,
 } = require('./eslint-utils.js');
 
 describe('convertESLintMessagesToIssues', () => {
   test('should convert valid ESLint messages to issues', () => {
     const messages = [
       {
+        column: 5,
+        endColumn: 6,
+        endLine: 1,
+        line: 1,
+        message: "'x' is assigned a value but never used.",
+        nodeType: 'Identifier',
         ruleId: 'no-unused-vars',
         severity: 2,
-        message: "'x' is assigned a value but never used.",
-        line: 1,
-        column: 5,
-        nodeType: 'Identifier',
-        endLine: 1,
-        endColumn: 6,
       },
       {
+        column: 10,
+        line: 2,
+        message: 'Missing semicolon.',
+        nodeType: 'ExpressionStatement',
         ruleId: 'semi',
         severity: 1,
-        message: 'Missing semicolon.',
-        line: 2,
-        column: 10,
-        nodeType: 'ExpressionStatement',
       },
     ];
 
@@ -68,21 +69,21 @@ describe('convertESLintMessagesToIssues', () => {
   test('should skip messages with missing required fields', () => {
     const messages = [
       {
+        message: 'Some error',
         // Missing line and column
         severity: 2,
-        message: 'Some error',
       },
       {
+        column: 1,
+        line: 1,
+        message: 'Valid error',
         // Valid message
         severity: 2,
-        message: 'Valid error',
-        line: 1,
-        column: 1,
       },
       {
+        column: 1,
         // Missing message
         line: 2,
-        column: 1,
       },
     ];
 
@@ -95,9 +96,9 @@ describe('convertESLintMessagesToIssues', () => {
 
   test('should map severities correctly', () => {
     const messages = [
-      { severity: 2, message: 'Error', line: 1, column: 1 },
-      { severity: 1, message: 'Warning', line: 2, column: 1 },
-      { severity: 0, message: 'Info', line: 3, column: 1 },
+      { column: 1, line: 1, message: 'Error', severity: 2 },
+      { column: 1, line: 2, message: 'Warning', severity: 1 },
+      { column: 1, line: 3, message: 'Info', severity: 0 },
     ];
 
     const result = convertESLintMessagesToIssues(messages);
@@ -110,10 +111,10 @@ describe('convertESLintMessagesToIssues', () => {
   test('should handle messages without ruleId', () => {
     const messages = [
       {
-        severity: 2,
-        message: 'Parsing error',
-        line: 1,
         column: 1,
+        line: 1,
+        message: 'Parsing error',
+        severity: 2,
       },
     ];
 
@@ -128,17 +129,17 @@ describe('parseESLintOutput', () => {
   test('should parse valid ESLint JSON output', () => {
     const jsonOutput = JSON.stringify([
       {
+        errorCount: 1,
         filePath: '/path/to/file.js',
         messages: [
           {
+            column: 5,
+            line: 1,
+            message: "'x' is assigned a value but never used.",
             ruleId: 'no-unused-vars',
             severity: 2,
-            message: "'x' is assigned a value but never used.",
-            line: 1,
-            column: 5,
           },
         ],
-        errorCount: 1,
         warningCount: 0,
       },
     ]);

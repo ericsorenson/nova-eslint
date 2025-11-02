@@ -26,19 +26,19 @@ function convertESLintMessagesToIssues(messages) {
     }
 
     const issue = {
-      message: msg.message,
-      line: msg.line,
       column: msg.column,
+      line: msg.line,
+      message: msg.message,
     };
 
     // Map ESLint severity to issue severity
     // ESLint: 1 = warning, 2 = error
     switch (msg.severity) {
-      case 2:
-        issue.severity = 'error';
-        break;
       case 1:
         issue.severity = 'warning';
+        break;
+      case 2:
+        issue.severity = 'error';
         break;
       default:
         issue.severity = 'info';
@@ -61,29 +61,6 @@ function convertESLintMessagesToIssues(messages) {
   }
 
   return issues;
-}
-
-/**
- * Parse ESLint JSON output
- * @param {string} jsonOutput - ESLint JSON output string
- * @returns {Object|null} Parsed result or null if invalid
- */
-function parseESLintOutput(jsonOutput) {
-  if (!jsonOutput || typeof jsonOutput !== 'string') {
-    return null;
-  }
-
-  try {
-    const results = JSON.parse(jsonOutput);
-
-    if (!Array.isArray(results) || results.length === 0) {
-      return { messages: [] };
-    }
-
-    return results[0];
-  } catch (_error) {
-    return null;
-  }
 }
 
 /**
@@ -114,8 +91,31 @@ function findESLintExecutable(fs, workspacePath, candidates) {
   return null;
 }
 
+/**
+ * Parse ESLint JSON output
+ * @param {string} jsonOutput - ESLint JSON output string
+ * @returns {Object|null} Parsed result or null if invalid
+ */
+function parseESLintOutput(jsonOutput) {
+  if (!jsonOutput || typeof jsonOutput !== 'string') {
+    return null;
+  }
+
+  try {
+    const results = JSON.parse(jsonOutput);
+
+    if (!Array.isArray(results) || results.length === 0) {
+      return { messages: [] };
+    }
+
+    return results[0];
+  } catch (_error) {
+    return null;
+  }
+}
+
 module.exports = {
   convertESLintMessagesToIssues,
-  parseESLintOutput,
   findESLintExecutable,
+  parseESLintOutput,
 };
