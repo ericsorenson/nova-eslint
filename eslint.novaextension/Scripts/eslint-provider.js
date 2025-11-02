@@ -17,7 +17,7 @@ class ESLintProvider {
     this.pendingLints = new Map();
     this.pendingResolvers = new Map(); // Track promise resolvers to resolve on dispose
     this.activeLints = new Set();
-    this.notificationShown = false;
+    this.shownNotifications = new Set(); // Track which specific errors we've notified about
   }
 
   /**
@@ -74,8 +74,6 @@ class ESLintProvider {
    * @param {Error} error
    */
   handleError(error) {
-    if (this.notificationShown) return;
-
     const notifications = {
       failed: {
         body: error.message,
@@ -94,12 +92,15 @@ class ESLintProvider {
     )?.[1];
 
     if (notif) {
-      this.notificationShown = true;
-      const request = new NotificationRequest(notif.id);
-      request.title = notif.title;
-      request.body = notif.body;
-      request.actions = ['OK'];
-      nova.notifications.add(request);
+      // Only show notification if we haven't shown this specific error before
+      if (!this.shownNotifications.has(notif.id)) {
+        this.shownNotifications.add(notif.id);
+        const request = new NotificationRequest(notif.id);
+        request.title = notif.title;
+        request.body = notif.body;
+        request.actions = ['OK'];
+        nova.notifications.add(request);
+      }
     }
   }
 
@@ -177,8 +178,8 @@ class ESLintProvider {
 
         try {
           const issues = await this.lintDocument(editor);
-          // Reset notification flag on successful lint (ESLint is working)
-          this.notificationShown = false;
+          // Reset notification tracking on successful lint (ESLint is working again)
+          this.shownNotifications.clear();
           resolve(issues);
         } catch (error) {
           this.handleError(error);

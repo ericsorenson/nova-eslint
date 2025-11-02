@@ -38,7 +38,7 @@
       "key": "eslint.lintOnChange",
       "title": "Lint on Change",
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "Run ESLint as you type (debounced 300ms)"
     },
     {

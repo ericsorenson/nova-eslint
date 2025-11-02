@@ -17,15 +17,16 @@ npm test                 # Run all tests
 npm run test:coverage    # Run tests with coverage report
 ```
 
-**Test Coverage:** ~84% line coverage, ~94% branch coverage
+**Test Coverage:**
 
 Test coverage includes:
+- **ESLintRunner:** Process execution, ESLint discovery, argument building, stdin/stdout communication
+- **ESLintProvider:** Issue conversion, debouncing, error notifications, disposal
+- **ESLintUtils:** Pure utility functions for parsing and conversion
+- **Main:** Fix-on-save tracking and configuration management
 - Bug fixes (memory leaks, disposal, caching)
-- Error handling and notifications
-- Issue conversion from ESLint to Nova format
-- Executable detection
-- Debounce behavior
-- Fix-on-save tracking
+- Error handling and notification logic
+- Exit code handling and timeout scenarios
 
 Tests are located in the `test/` directory and use Node.js's native test runner (no external libraries required).
 

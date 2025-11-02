@@ -196,7 +196,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     assert.strictEqual(notificationAdded.id, 'eslint-not-found');
     assert.strictEqual(notificationAdded.title, 'ESLint Not Found');
     assert.ok(notificationAdded.body.includes('npm install'));
-    assert.ok(provider.notificationShown);
+    assert.ok(provider.shownNotifications.has('eslint-not-found'));
   });
 
   test('should show notification for "failed" config error', () => {
@@ -216,7 +216,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     assert.ok(notificationAdded);
     assert.strictEqual(notificationAdded.id, 'eslint-config-error');
     assert.strictEqual(notificationAdded.title, 'ESLint Configuration Error');
-    assert.ok(provider.notificationShown);
+    assert.ok(provider.shownNotifications.has('eslint-config-error'));
   });
 
   test('should not show duplicate notifications', () => {
@@ -238,6 +238,31 @@ describe('ESLintProvider - handleError() Tests', () => {
     // Second call should not show notification
     provider.handleError(error);
     assert.strictEqual(notificationCount, 1);
+  });
+
+  test('should re-show notifications after successful lint clears tracking', () => {
+    setupMocks();
+    let notificationCount = 0;
+
+    global.nova.notifications.add = () => {
+      notificationCount++;
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const error = new Error('ESLint executable not found');
+
+    // First error shows notification
+    provider.handleError(error);
+    assert.strictEqual(notificationCount, 1);
+
+    // Simulate successful lint (would happen in provideIssues)
+    provider.shownNotifications.clear();
+
+    // New error should show notification again
+    provider.handleError(error);
+    assert.strictEqual(notificationCount, 2);
   });
 });
 
