@@ -139,6 +139,12 @@ function setupFixOnSave() {
           });
 
           setTimeout(() => {
+            // Validate editor is still valid before saving
+            if (!editor.document) {
+              fixingSaveFiles.delete(filePath);
+              return;
+            }
+
             editor
               .save()
               .then(() => {

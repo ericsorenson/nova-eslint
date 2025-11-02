@@ -15,6 +15,7 @@ class ESLintProvider {
   constructor() {
     this.runner = new ESLintRunner();
     this.pendingLints = new Map();
+    this.pendingResolvers = new Map(); // Track promise resolvers to resolve on dispose
     this.activeLints = new Set();
     this.notificationShown = false;
   }
@@ -54,6 +55,13 @@ class ESLintProvider {
       clearTimeout(timeout);
     }
     this.pendingLints.clear();
+    this.activeLints.clear();
+
+    // Resolve all pending promises with empty arrays
+    for (const resolve of this.pendingResolvers.values()) {
+      resolve([]);
+    }
+    this.pendingResolvers.clear();
 
     // Dispose runner (kills active processes)
     if (this.runner) {
@@ -141,12 +149,18 @@ class ESLintProvider {
     const pending = this.pendingLints.get(uri);
     if (pending) {
       clearTimeout(pending);
+      this.pendingLints.delete(uri);
+      // Don't delete resolver - the new promise will overwrite it
     }
 
     // Schedule lint with debounce
     return new Promise(resolve => {
+      // Store resolver to be called on dispose
+      this.pendingResolvers.set(uri, resolve);
+
       const timeout = setTimeout(async () => {
         this.pendingLints.delete(uri);
+        this.pendingResolvers.delete(uri);
 
         // Validate editor is still valid (not closed)
         if (!editor.document) {
