@@ -5,7 +5,7 @@ class ESLintRunner {
   constructor() {
     this.eslintPath = null;
     this.workspacePath = nova.workspace.path;
-    this.cachedConfigPath = null;
+    this.cachedConfigPath = undefined; // undefined = not cached, null = cached as "no config"
   }
 
   /**
@@ -30,7 +30,7 @@ class ESLintRunner {
    */
   clearCache() {
     this.eslintPath = null;
-    this.cachedConfigPath = null;
+    this.cachedConfigPath = undefined;
   }
 
   /**
@@ -106,10 +106,16 @@ class ESLintRunner {
         // If stdin content provided, write it to the process
         if (stdinContent !== undefined) {
           const writer = process.stdin.getWriter();
-          writer.ready.then(() => {
-            writer.write(stdinContent);
-            writer.close();
-          });
+          writer.ready
+            .then(() => {
+              writer.write(stdinContent);
+              writer.close();
+            })
+            .catch(err => {
+              reject(
+                new Error(`Failed to write to ESLint stdin: ${err.message}`),
+              );
+            });
         }
       } catch (e) {
         reject(new Error(`Failed to start ESLint: ${e.message}`));
@@ -169,7 +175,8 @@ class ESLintRunner {
    * @returns {string|null}
    */
   getConfigPath() {
-    if (this.cachedConfigPath !== null) {
+    // Use undefined to indicate "not yet cached"
+    if (this.cachedConfigPath !== undefined) {
       return this.cachedConfigPath;
     }
 
@@ -179,7 +186,8 @@ class ESLintRunner {
       return this.cachedConfigPath;
     }
 
-    this.cachedConfigPath = false; // Explicitly cache "no config"
+    // Cache null to indicate "no config"
+    this.cachedConfigPath = null;
     return null;
   }
 

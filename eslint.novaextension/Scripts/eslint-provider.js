@@ -152,6 +152,8 @@ class ESLintProvider {
 
         try {
           const issues = await this.lintDocument(editor);
+          // Reset notification flag on successful lint (ESLint is working)
+          this.notificationShown = false;
           resolve(issues);
         } catch (error) {
           this.handleError(error);
