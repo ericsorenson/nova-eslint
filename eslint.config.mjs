@@ -1,8 +1,8 @@
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-// import eslint from '@eslint/js';
+import eslint from '@eslint/js';
 
 export default [
-  // eslint.configs.recommended,
+  eslint.configs.recommended,
   {
     files: ['eslint.novaextension/**/*.js'],
     languageOptions: {
@@ -28,6 +28,14 @@ export default [
         exports: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
+
+        // Node.js globals
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        setImmediate: 'readonly',
+        clearImmediate: 'readonly',
       },
     },
     rules: {
@@ -73,7 +81,7 @@ export default [
   },
   {
     // Ignore patterns
-    ignores: ['node_modules/**', 'dist/**', '.git/**', 'test.js'],
+    ignores: ['node_modules/**', 'test.js'],
   },
   eslintPluginPrettierRecommended,
 ];
