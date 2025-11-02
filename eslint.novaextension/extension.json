@@ -1,6 +1,6 @@
 {
   "identifier": "software.sorenson.eslint",
-  "name": "ESLint",
+  "name": "ESLint Starlight Edition",
   "organization": "Eric Sorenson",
   "description": "Integrates ESLint into Nova for JavaScript and TypeScript linting",
   "version": "0.0.1",
