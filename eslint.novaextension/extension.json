@@ -4,7 +4,7 @@
   "organization": "Eric Sorenson",
   "description": "Integrates ESLint into Nova for JavaScript and TypeScript linting",
   "version": "0.0.1",
-  "categories": ["issues", "commands"],
+  "categories": ["issues"],
   "license": "MIT",
   "repository": "https://github.com/esorenson/nova-eslint",
   "bugs": "https://github.com/esorenson/nova-eslint/issues",
