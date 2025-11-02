@@ -7,7 +7,8 @@
     "test": "node --test test/**/*.test.js",
     "test:coverage": "node --test --experimental-test-coverage test/**/*.test.js",
     "lint": "eslint eslint.novaextension/**/*.js eslint.config.mjs",
-    "lint:fix": "eslint --fix eslint.novaextension/**/*.js eslint.config.mjs"
+    "lint:fix": "eslint --fix eslint.novaextension/**/*.js eslint.config.mjs",
+    "update": "ncu -u"
   },
   "repository": {
     "type": "git",
@@ -22,10 +23,11 @@
   "author": "Eric Sorenson",
   "license": "MIT",
   "dependencies": {
-    "eslint": "^9.15.0",
+    "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-perfectionist": "^4.15.1",
     "eslint-plugin-prettier": "^5.5.4",
+    "npm-check-updates": "^19.1.2",
     "prettier": "^3.6.2"
   }
 }
