@@ -1,4 +1,4 @@
-# ESLint for Nova
+# Nova ESLint Starlight Edition
 
 Integrates ESLint into Nova for JavaScript and TypeScript linting.
 

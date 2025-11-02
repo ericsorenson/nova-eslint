@@ -1,4 +1,4 @@
-# nova-eslint
+# Nova ESLint Starlight Edition
 
 ESLint integration for the Nova code editor.
 
