@@ -7,8 +7,9 @@ const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];
 
 let provider = null;
 let assistantDisposable = null;
-let isFixingSave = false;
+let fixingSaveFiles = new Set(); // Track which files are currently being fixed
 let disposables = []; // Track all disposables for cleanup
+let editorDisposables = new WeakMap(); // Track per-editor disposables
 
 /**
  * Activate the extension
@@ -97,54 +98,66 @@ function registerIssueAssistant() {
 function setupFixOnSave() {
   disposables.push(
     nova.workspace.onDidAddTextEditor(editor => {
-      disposables.push(
-        editor.onDidSave(async editor => {
-          if (isFixingSave) return;
-          if (!nova.config.get('eslint.fixOnSave', 'boolean')) return;
-          if (!editor.document.path) return;
-          if (!SUPPORTED_LANGUAGES.includes(editor.document.syntax)) return;
-          if (!provider || !provider.runner) {
-            console.error('Provider not initialized');
+      // Use WeakMap to store editor-specific disposable
+      // This prevents memory leak as WeakMap entries are GC'd when editor is destroyed
+      const saveDisposable = editor.onDidSave(async editor => {
+        if (!nova.config.get('eslint.fixOnSave', 'boolean')) return;
+        if (!editor.document.path) return;
+        if (!SUPPORTED_LANGUAGES.includes(editor.document.syntax)) return;
+        if (!provider || !provider.runner) {
+          console.error('Provider not initialized');
+          return;
+        }
+
+        const filePath = editor.document.path;
+
+        // Check if this file is already being fixed
+        if (fixingSaveFiles.has(filePath)) {
+          return;
+        }
+
+        try {
+          fixingSaveFiles.add(filePath);
+
+          const fixedContent = await provider.runner.fix(filePath);
+          if (!fixedContent) {
+            fixingSaveFiles.delete(filePath);
             return;
           }
 
-          try {
-            const fixedContent = await provider.runner.fix(
-              editor.document.path,
-            );
-            if (!fixedContent) return;
+          const currentContent = editor.document.getTextInRange(
+            new Range(0, editor.document.length),
+          );
 
-            const currentContent = editor.document.getTextInRange(
-              new Range(0, editor.document.length),
-            );
-
-            if (currentContent === fixedContent) return;
-
-            isFixingSave = true;
-
-            await editor.edit(edit => {
-              edit.replace(new Range(0, editor.document.length), fixedContent);
-            });
-
-            setTimeout(() => {
-              editor
-                .save()
-                .then(() => {
-                  setTimeout(() => {
-                    isFixingSave = false;
-                  }, 100);
-                })
-                .catch(saveError => {
-                  console.error('Failed to save after fix:', saveError);
-                  isFixingSave = false;
-                });
-            }, 10);
-          } catch (error) {
-            console.error('Fix on save error:', error);
-            isFixingSave = false;
+          if (currentContent === fixedContent) {
+            fixingSaveFiles.delete(filePath);
+            return;
           }
-        }),
-      );
+
+          await editor.edit(edit => {
+            edit.replace(new Range(0, editor.document.length), fixedContent);
+          });
+
+          setTimeout(() => {
+            editor
+              .save()
+              .then(() => {
+                setTimeout(() => {
+                  fixingSaveFiles.delete(filePath);
+                }, 100);
+              })
+              .catch(saveError => {
+                console.error('Failed to save after fix:', saveError);
+                fixingSaveFiles.delete(filePath);
+              });
+          }, 10);
+        } catch (error) {
+          console.error('Fix on save error:', error);
+          fixingSaveFiles.delete(filePath);
+        }
+      });
+
+      editorDisposables.set(editor, saveDisposable);
     }),
   );
 }

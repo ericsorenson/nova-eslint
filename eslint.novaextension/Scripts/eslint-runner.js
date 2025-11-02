@@ -6,6 +6,7 @@ class ESLintRunner {
     this.eslintPath = null;
     this.workspacePath = nova.workspace.path;
     this.cachedConfigPath = undefined; // undefined = not cached, null = cached as "no config"
+    this.activeProcesses = new Set(); // Track active processes for cleanup
   }
 
   /**
@@ -31,6 +32,22 @@ class ESLintRunner {
   clearCache() {
     this.eslintPath = null;
     this.cachedConfigPath = undefined;
+  }
+
+  /**
+   * Dispose of runner and kill all active processes
+   */
+  dispose() {
+    // Kill all active processes
+    for (const process of this.activeProcesses) {
+      try {
+        process.kill();
+      } catch (e) {
+        // Process might already be dead
+        console.error('Error killing ESLint process:', e);
+      }
+    }
+    this.activeProcesses.clear();
   }
 
   /**
@@ -63,6 +80,18 @@ class ESLintRunner {
 
       let stdout = '';
       let stderr = '';
+      let settled = false; // Track if promise is settled to avoid double-settle
+      let processTimeout = null;
+
+      // Track this process for cleanup
+      this.activeProcesses.add(process);
+
+      const cleanup = () => {
+        this.activeProcesses.delete(process);
+        if (processTimeout) {
+          clearTimeout(processTimeout);
+        }
+      };
 
       process.onStdout(line => {
         stdout += line;
@@ -73,6 +102,11 @@ class ESLintRunner {
       });
 
       process.onDidExit(exitCode => {
+        cleanup();
+
+        if (settled) return; // Already rejected/resolved
+        settled = true;
+
         // Exit codes:
         // 0 = no errors
         // 1 = linting errors found (this is success for us)
@@ -103,21 +137,56 @@ class ESLintRunner {
       try {
         process.start();
 
+        // Set timeout to kill hung processes (30 seconds)
+        processTimeout = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+
+          try {
+            process.kill();
+          } catch (_e) {
+            // Process might already be dead
+          }
+
+          reject(new Error('ESLint process timed out after 30 seconds'));
+        }, 30000);
+
         // If stdin content provided, write it to the process
         if (stdinContent !== undefined) {
           const writer = process.stdin.getWriter();
           writer.ready
             .then(() => {
+              if (settled) return; // Don't write if already settled
               writer.write(stdinContent);
               writer.close();
             })
             .catch(err => {
+              if (settled) return; // Don't reject if already settled
+              settled = true;
+              cleanup();
+
+              try {
+                process.kill();
+              } catch (_e) {
+                // Process might already be dead
+              }
+
               reject(
                 new Error(`Failed to write to ESLint stdin: ${err.message}`),
               );
             });
         }
       } catch (e) {
+        settled = true;
+        cleanup();
+
+        try {
+          process.kill();
+        } catch (_killErr) {
+          // Process might not have started
+        }
+
         reject(new Error(`Failed to start ESLint: ${e.message}`));
       }
     });

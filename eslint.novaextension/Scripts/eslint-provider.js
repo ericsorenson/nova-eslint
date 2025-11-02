@@ -54,6 +54,11 @@ class ESLintProvider {
       clearTimeout(timeout);
     }
     this.pendingLints.clear();
+
+    // Dispose runner (kills active processes)
+    if (this.runner) {
+      this.runner.dispose();
+    }
   }
 
   /**
@@ -142,6 +147,12 @@ class ESLintProvider {
     return new Promise(resolve => {
       const timeout = setTimeout(async () => {
         this.pendingLints.delete(uri);
+
+        // Validate editor is still valid (not closed)
+        if (!editor.document) {
+          resolve([]);
+          return;
+        }
 
         if (this.activeLints.has(uri)) {
           resolve([]);
