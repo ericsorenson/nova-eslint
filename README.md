@@ -8,6 +8,24 @@ The extension source code is in the `eslint.novaextension/` directory. See the [
 
 ## Development
 
+### Running Tests
+
+The project includes a comprehensive test suite covering bug fixes, error handling, and core functionality:
+
+```bash
+npm test
+```
+
+Test coverage includes:
+- Bug fixes (memory leaks, disposal, caching)
+- Error handling and notifications
+- Issue conversion from ESLint to Nova format
+- Executable detection
+- Debounce behavior
+- Fix-on-save tracking
+
+Tests are located in the `test/` directory and use Node.js's native test runner.
+
 ### Testing the Extension
 
 1. Open this project in Nova
