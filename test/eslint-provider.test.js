@@ -144,3 +144,263 @@ describe('ESLintProvider - Bug Fix Tests', () => {
     assert.ok(runnerDisposeCalled);
   });
 });
+
+describe('ESLintProvider - handleError() Tests', () => {
+  function setupMocks() {
+    global.nova = {
+      config: { get: () => true },
+      fs: {
+        access: () => false,
+        stat: () => null,
+      },
+      notifications: {
+        add: () => {},
+      },
+      path: { join: (a, b) => `${a}/${b}` },
+      workspace: { path: '/test' },
+    };
+
+    global.IssueSeverity = {
+      Error: 'error',
+      Info: 'info',
+      Warning: 'warning',
+    };
+
+    global.Issue = class Issue {};
+    global.Range = class Range {};
+    global.NotificationRequest = class NotificationRequest {
+      constructor(id) {
+        this.id = id;
+        this.title = '';
+        this.body = '';
+        this.actions = [];
+      }
+    };
+  }
+
+  test('should show notification for "not found" error', () => {
+    setupMocks();
+    let notificationAdded = null;
+
+    global.nova.notifications.add = request => {
+      notificationAdded = request;
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const error = new Error('ESLint executable not found in project');
+    provider.handleError(error);
+
+    assert.ok(notificationAdded);
+    assert.strictEqual(notificationAdded.id, 'eslint-not-found');
+    assert.strictEqual(notificationAdded.title, 'ESLint Not Found');
+    assert.ok(notificationAdded.body.includes('npm install'));
+    assert.ok(provider.notificationShown);
+  });
+
+  test('should show notification for "failed" config error', () => {
+    setupMocks();
+    let notificationAdded = null;
+
+    global.nova.notifications.add = request => {
+      notificationAdded = request;
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const error = new Error('ESLint failed (exit 2): Configuration error');
+    provider.handleError(error);
+
+    assert.ok(notificationAdded);
+    assert.strictEqual(notificationAdded.id, 'eslint-config-error');
+    assert.strictEqual(notificationAdded.title, 'ESLint Configuration Error');
+    assert.ok(provider.notificationShown);
+  });
+
+  test('should not show duplicate notifications', () => {
+    setupMocks();
+    let notificationCount = 0;
+
+    global.nova.notifications.add = () => {
+      notificationCount++;
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const error = new Error('ESLint executable not found');
+
+    provider.handleError(error);
+    assert.strictEqual(notificationCount, 1);
+
+    // Second call should not show notification
+    provider.handleError(error);
+    assert.strictEqual(notificationCount, 1);
+  });
+});
+
+describe('ESLintProvider - convertToIssues() Tests', () => {
+  function setupMocks() {
+    global.nova = {
+      config: { get: () => true },
+      fs: {
+        access: () => false,
+        stat: () => null,
+      },
+      path: { join: (a, b) => `${a}/${b}` },
+      workspace: { path: '/test' },
+    };
+
+    global.IssueSeverity = {
+      Error: 'error',
+      Info: 'info',
+      Warning: 'warning',
+    };
+
+    global.Issue = class Issue {
+      constructor() {
+        this.message = '';
+        this.line = 0;
+        this.column = 0;
+        this.severity = '';
+        this.source = '';
+      }
+    };
+
+    global.Range = class Range {};
+    global.NotificationRequest = class NotificationRequest {};
+  }
+
+  test('should create Issue objects with correct properties', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const result = {
+      messages: [
+        {
+          column: 5,
+          endColumn: 10,
+          endLine: 2,
+          line: 1,
+          message: 'Unused variable',
+          ruleId: 'no-unused-vars',
+          severity: 2,
+        },
+      ],
+    };
+
+    const issues = provider.convertToIssues(result);
+
+    assert.strictEqual(issues.length, 1);
+    assert.strictEqual(issues[0].message, 'Unused variable');
+    assert.strictEqual(issues[0].line, 1);
+    assert.strictEqual(issues[0].column, 5);
+    assert.strictEqual(issues[0].severity, 'error');
+    assert.strictEqual(issues[0].code, 'no-unused-vars');
+    assert.strictEqual(issues[0].source, 'ESLint');
+    assert.strictEqual(issues[0].endLine, 2);
+    assert.strictEqual(issues[0].endColumn, 10);
+  });
+
+  test('should handle empty or null results gracefully', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    assert.deepStrictEqual(provider.convertToIssues(null), []);
+    assert.deepStrictEqual(provider.convertToIssues({}), []);
+    assert.deepStrictEqual(provider.convertToIssues({ messages: [] }), []);
+  });
+});
+
+describe('ESLintProvider - Debounce Behavior Tests', () => {
+  function setupMocks() {
+    global.nova = {
+      config: { get: () => true },
+      fs: {
+        access: () => false,
+        stat: () => null,
+      },
+      path: { join: (a, b) => `${a}/${b}` },
+      workspace: { path: '/test' },
+    };
+
+    global.IssueSeverity = {
+      Error: 'error',
+      Info: 'info',
+      Warning: 'warning',
+    };
+
+    global.Issue = class Issue {};
+    global.Range = class Range {};
+    global.NotificationRequest = class NotificationRequest {};
+  }
+
+  test('rapid calls should cancel previous pending lints', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Mock runner to prevent actual linting
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    // First call
+    provider.provideIssues(editor);
+    assert.strictEqual(provider.pendingLints.size, 1);
+
+    // Second call should cancel first
+    provider.provideIssues(editor);
+    assert.strictEqual(provider.pendingLints.size, 1);
+
+    // Third call should cancel second
+    provider.provideIssues(editor);
+    assert.strictEqual(provider.pendingLints.size, 1);
+
+    // Clean up
+    provider.dispose();
+  });
+
+  test('pendingLints should be cleared after lint completes', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Mock runner to prevent actual linting
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    const promise = provider.provideIssues(editor);
+
+    // Should have pending lint
+    assert.strictEqual(provider.pendingLints.size, 1);
+
+    // Wait for debounce + execution
+    await promise;
+
+    // Should be cleared after completion
+    assert.strictEqual(provider.pendingLints.size, 0);
+    assert.strictEqual(provider.pendingResolvers.size, 0);
+
+    // Clean up
+    provider.dispose();
+  });
+});

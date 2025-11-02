@@ -100,3 +100,49 @@ describe('ESLintRunner - Bug Fix Tests', () => {
     assert.strictEqual(runner.cachedConfigPath, undefined);
   });
 });
+
+describe('ESLintRunner - isExecutable() Tests', () => {
+  function setupMocks() {
+    global.nova = {
+      fs: {
+        access: () => true,
+        constants: { R_OK: 4 },
+        stat: () => ({ isFile: true }),
+      },
+      workspace: { path: '/test' },
+    };
+  }
+
+  test('isExecutable should return false for non-existent paths', () => {
+    setupMocks();
+    global.nova.fs.stat = () => null; // File doesn't exist
+
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const runner = new ESLintRunner();
+
+    assert.strictEqual(runner.isExecutable('/nonexistent/path'), false);
+  });
+
+  test('isExecutable should return false when access check fails', () => {
+    setupMocks();
+    global.nova.fs.access = () => false; // Not readable
+
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const runner = new ESLintRunner();
+
+    assert.strictEqual(runner.isExecutable('/path/to/file'), false);
+  });
+
+  test('isExecutable should handle permission errors gracefully', () => {
+    setupMocks();
+    global.nova.fs.stat = () => {
+      throw new Error('Permission denied');
+    };
+
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const runner = new ESLintRunner();
+
+    // Should catch error and return false
+    assert.strictEqual(runner.isExecutable('/path/to/file'), false);
+  });
+});
