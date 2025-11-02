@@ -15,7 +15,7 @@ describe('ESLintRunner - Bug Fix Tests', () => {
       },
     };
 
-    const ESLintRunner = require('./eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
     const runner = new ESLintRunner();
 
     // Initially undefined (not cached)
@@ -52,7 +52,7 @@ describe('ESLintRunner - Bug Fix Tests', () => {
       workspace: { path: '/test' },
     };
 
-    const ESLintRunner = require('./eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
     const runner = new ESLintRunner();
 
     assert.ok(runner.activeProcesses instanceof Set);
@@ -64,7 +64,7 @@ describe('ESLintRunner - Bug Fix Tests', () => {
       workspace: { path: '/test' },
     };
 
-    const ESLintRunner = require('./eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
     const runner = new ESLintRunner();
 
     // Mock process
@@ -87,7 +87,7 @@ describe('ESLintRunner - Bug Fix Tests', () => {
       },
     };
 
-    const ESLintRunner = require('./eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
     const runner = new ESLintRunner();
     runner.workspacePath = '/test';
 

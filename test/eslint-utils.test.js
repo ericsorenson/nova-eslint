@@ -10,7 +10,7 @@ const {
   convertESLintMessagesToIssues,
   findESLintExecutable,
   parseESLintOutput,
-} = require('./eslint-utils.js');
+} = require('../eslint.novaextension/Scripts/eslint-utils.js');
 
 describe('convertESLintMessagesToIssues', () => {
   test('should convert valid ESLint messages to issues', () => {

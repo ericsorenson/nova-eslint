@@ -49,7 +49,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('activeLints should be cleared on dispose', () => {
     setupMocks();
-    const ESLintProvider = require('./eslint-provider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
     const provider = new ESLintProvider();
 
     // Add some URIs to activeLints
@@ -64,7 +64,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('pendingResolvers should be called and cleared on dispose', () => {
     setupMocks();
-    const ESLintProvider = require('./eslint-provider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
     const provider = new ESLintProvider();
 
     let resolver1Called = false;
@@ -100,7 +100,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('pendingLints timeouts should be cleared on dispose', () => {
     setupMocks();
-    const ESLintProvider = require('./eslint-provider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
     const provider = new ESLintProvider();
 
     // Create fake timeouts
@@ -123,7 +123,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('pendingResolvers Map should be initialized', () => {
     setupMocks();
-    const ESLintProvider = require('./eslint-provider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
     const provider = new ESLintProvider();
 
     assert.ok(provider.pendingResolvers instanceof Map);
@@ -132,7 +132,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('runner.dispose should be called on provider dispose', () => {
     setupMocks();
-    const ESLintProvider = require('./eslint-provider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/eslint-provider.js');
     const provider = new ESLintProvider();
 
     let runnerDisposeCalled = false;

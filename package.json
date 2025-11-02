@@ -4,7 +4,7 @@
   "description": "ESLint integration for the Nova code editor",
   "private": true,
   "scripts": {
-    "test": "node --test eslint.novaextension/Scripts/**/*.test.js",
+    "test": "node --test test/**/*.test.js",
     "lint": "eslint eslint.novaextension/**/*.js eslint.config.mjs",
     "lint:fix": "eslint --fix eslint.novaextension/**/*.js eslint.config.mjs"
   },
