@@ -3,7 +3,7 @@
   "name": "ESLint Starlight Edition",
   "organization": "Eric Sorenson",
   "description": "Integrates ESLint into Nova for JavaScript and TypeScript linting",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "categories": ["issues"],
   "license": "MIT",
   "repository": "https://github.com/ericsorenson/nova-eslint",
