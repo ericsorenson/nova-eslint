@@ -7,7 +7,7 @@ Integrates ESLint into Nova for JavaScript and TypeScript linting.
 - Real-time linting for JavaScript, TypeScript, JSX, and TSX files
 - Displays errors and warnings inline as you code
 - Lint on save (default) or as you type
-- **Auto-fix on save** - automatically applies ESLint fixes when saving
+- Auto-fix on save - automatically applies ESLint fixes when saving
 - Automatically detects ESLint configuration in your project
 - Respects `.eslintignore` and ignore patterns
 - Works with ESLint plugins (React, TypeScript, Vue, etc.)
