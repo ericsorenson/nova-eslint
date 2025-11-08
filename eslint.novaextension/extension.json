@@ -6,8 +6,8 @@
   "version": "1.0.0",
   "categories": ["issues"],
   "license": "MIT",
-  "repository": "https://github.com/esorenson/nova-eslint",
-  "bugs": "https://github.com/esorenson/nova-eslint/issues",
+  "repository": "https://github.com/ericsorenson/nova-eslint",
+  "bugs": "https://github.com/ericsorenson/nova-eslint/issues",
   "min_runtime": "11.0",
   "main": "main.js",
   "activationEvents": [
