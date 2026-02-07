@@ -20,31 +20,58 @@ class LintService {
   }
 
   /**
-   * Lint a file
-   * @param {LintRequest} request
-   * @returns {Promise<LintResult>}
+   * Build arguments for fixing
+   * @private
    */
-  async lint(request) {
+  buildFixArgs(filePath) {
     const eslintPath = this.getESLintPath();
-    const args = this.buildLintArgs(request);
+    const config = this.configPort.getLintConfig();
+    const args = [
+      'node',
+      eslintPath,
+      '--format',
+      'json',
+      '--fix-dry-run',
+      filePath,
+    ];
 
-    const result = await this.processPort.execute({
-      args,
-      command: '/usr/bin/env',
-      cwd: this.configPort.getWorkspacePath(),
-      stdin: request.hasContent() ? request.content : null,
-    });
-
-    // Exit codes: 0 = clean, 1 = lint errors (success), 2 = fatal error
-    if (result.exitCode === 2) {
-      throw new Error(`ESLint failed: ${result.stderr}`);
+    if (config.configPath) {
+      args.splice(4, 0, '--config', config.configPath);
     }
 
-    const parsed = this.parseOutput(result.stdout);
-    return new LintResult({
-      filePath: request.filePath,
-      messages: parsed.messages,
-    });
+    return args;
+  }
+
+  /**
+   * Build arguments for linting
+   * @private
+   */
+  buildLintArgs(request) {
+    const eslintPath = this.getESLintPath();
+    const config = this.configPort.getLintConfig();
+    const args = ['node', eslintPath, '--format', 'json'];
+
+    if (config.configPath) {
+      args.push('--config', config.configPath);
+    }
+
+    if (request.hasContent()) {
+      args.push('--stdin', '--stdin-filename', request.filePath);
+    } else {
+      args.push(request.filePath);
+    }
+
+    return args;
+  }
+
+  /**
+   * Clear all caches
+   */
+  clearCache() {
+    this.cachedConfigPath = null;
+    this.cachedESLintPath = null;
+    this.configPathCached = false;
+    this.eslintPathCached = false;
   }
 
   /**
@@ -72,51 +99,6 @@ class LintService {
     const hasChanges = fixedContent !== null;
 
     return new FixResult({ fixedContent, hasChanges });
-  }
-
-  /**
-   * Build arguments for linting
-   * @private
-   */
-  buildLintArgs(request) {
-    const eslintPath = this.getESLintPath();
-    const config = this.configPort.getLintConfig();
-    const args = ['node', eslintPath, '--format', 'json'];
-
-    if (config.configPath) {
-      args.push('--config', config.configPath);
-    }
-
-    if (request.hasContent()) {
-      args.push('--stdin', '--stdin-filename', request.filePath);
-    } else {
-      args.push(request.filePath);
-    }
-
-    return args;
-  }
-
-  /**
-   * Build arguments for fixing
-   * @private
-   */
-  buildFixArgs(filePath) {
-    const eslintPath = this.getESLintPath();
-    const config = this.configPort.getLintConfig();
-    const args = [
-      'node',
-      eslintPath,
-      '--format',
-      'json',
-      '--fix-dry-run',
-      filePath,
-    ];
-
-    if (config.configPath) {
-      args.splice(4, 0, '--config', config.configPath);
-    }
-
-    return args;
   }
 
   /**
@@ -153,6 +135,34 @@ class LintService {
   }
 
   /**
+   * Lint a file
+   * @param {LintRequest} request
+   * @returns {Promise<LintResult>}
+   */
+  async lint(request) {
+    const eslintPath = this.getESLintPath();
+    const args = this.buildLintArgs(request);
+
+    const result = await this.processPort.execute({
+      args,
+      command: '/usr/bin/env',
+      cwd: this.configPort.getWorkspacePath(),
+      stdin: request.hasContent() ? request.content : null,
+    });
+
+    // Exit codes: 0 = clean, 1 = lint errors (success), 2 = fatal error
+    if (result.exitCode === 2) {
+      throw new Error(`ESLint failed: ${result.stderr}`);
+    }
+
+    const parsed = this.parseOutput(result.stdout);
+    return new LintResult({
+      filePath: request.filePath,
+      messages: parsed.messages,
+    });
+  }
+
+  /**
    * Parse ESLint JSON output
    * @private
    */
@@ -175,16 +185,6 @@ class LintService {
     } catch (error) {
       throw new Error(`Failed to parse ESLint output: ${error.message}`);
     }
-  }
-
-  /**
-   * Clear all caches
-   */
-  clearCache() {
-    this.cachedConfigPath = null;
-    this.cachedESLintPath = null;
-    this.configPathCached = false;
-    this.eslintPathCached = false;
   }
 }
 

@@ -3,8 +3,8 @@
  * Implements ConfigPort using Nova's config API
  */
 
-const { ConfigPort } = require('../domain/ports.js');
 const { LintConfig } = require('../domain/models.js');
+const { ConfigPort } = require('../domain/ports.js');
 
 class NovaConfigAdapter extends ConfigPort {
   getLintConfig() {
@@ -12,10 +12,7 @@ class NovaConfigAdapter extends ConfigPort {
       'eslint.executablePath',
       'string',
     );
-    const configPath = nova.workspace.config.get(
-      'eslint.configPath',
-      'string',
-    );
+    const configPath = nova.workspace.config.get('eslint.configPath', 'string');
 
     return new LintConfig({
       configPath: configPath || null,

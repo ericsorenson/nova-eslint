@@ -4,6 +4,16 @@
  */
 
 /**
+ * Fix result
+ */
+class FixResult {
+  constructor({ fixedContent, hasChanges }) {
+    this.fixedContent = fixedContent;
+    this.hasChanges = hasChanges;
+  }
+}
+
+/**
  * Lint configuration
  */
 class LintConfig {
@@ -41,16 +51,6 @@ class LintResult {
 
   hasMessages() {
     return this.messages.length > 0;
-  }
-}
-
-/**
- * Fix result
- */
-class FixResult {
-  constructor({ fixedContent, hasChanges }) {
-    this.fixedContent = fixedContent;
-    this.hasChanges = hasChanges;
   }
 }
 

@@ -13,6 +13,20 @@ class NovaProcessAdapter extends ProcessPort {
     this.activeProcesses = new Set();
   }
 
+  /**
+   * Terminate all active processes
+   */
+  dispose() {
+    this.activeProcesses.forEach(process => {
+      try {
+        process.terminate();
+      } catch (error) {
+        console.error('Error terminating process:', error);
+      }
+    });
+    this.activeProcesses.clear();
+  }
+
   async execute({ args, command, cwd, stdin }) {
     return new Promise((resolve, reject) => {
       const process = new Process(command, {
@@ -82,20 +96,6 @@ class NovaProcessAdapter extends ProcessPort {
         settleOnce(-1, new Error(`Failed to start process: ${error.message}`));
       }
     });
-  }
-
-  /**
-   * Terminate all active processes
-   */
-  dispose() {
-    this.activeProcesses.forEach(process => {
-      try {
-        process.terminate();
-      } catch (error) {
-        console.error('Error terminating process:', error);
-      }
-    });
-    this.activeProcesses.clear();
   }
 }
 
