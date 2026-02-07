@@ -1,5 +1,7 @@
 # Nova ESLint Starlight Edition
 
+[![CI](https://github.com/esorenson/nova-eslint/actions/workflows/ci.yml/badge.svg)](https://github.com/esorenson/nova-eslint/actions/workflows/ci.yml)
+
 ESLint integration for the Nova code editor.
 
 ## Extension
@@ -15,6 +17,15 @@ The project includes a comprehensive test suite covering bug fixes, error handli
 ```bash
 npm test                 # Run all tests
 npm run test:coverage    # Run tests with coverage report
+```
+
+### Linting
+
+The project uses ESLint with Prettier and Perfectionist for code quality:
+
+```bash
+npm run lint             # Check code style
+npm run lint:fix         # Auto-fix linting issues
 ```
 
 **Test Coverage:**
