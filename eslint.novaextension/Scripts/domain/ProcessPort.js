@@ -1,20 +1,24 @@
 /**
  * Process port
  * Executes external processes
+ *
+ * @typedef {Object} ProcessPort
+ * @property {function(ProcessExecuteOptions): Promise<ProcessResult>} execute - Execute a process
  */
-class ProcessPort {
-  /**
-   * Execute a process
-   * @param {Object} options
-   * @param {string} options.command - Command to execute
-   * @param {string[]} options.args - Command arguments
-   * @param {string|null} options.cwd - Working directory
-   * @param {string|null} options.stdin - Standard input content
-   * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>}
-   */
-  execute({ args, command, cwd, stdin }) {
-    throw new Error('Not implemented');
-  }
-}
 
-module.exports = { ProcessPort };
+/**
+ * @typedef {Object} ProcessExecuteOptions
+ * @property {string} command - Command to execute
+ * @property {string[]} args - Command arguments
+ * @property {string|null} cwd - Working directory
+ * @property {string|null} stdin - Standard input content
+ */
+
+/**
+ * @typedef {Object} ProcessResult
+ * @property {string} stdout - Standard output
+ * @property {string} stderr - Standard error
+ * @property {number} exitCode - Exit code
+ */
+
+module.exports = {};

@@ -3,8 +3,8 @@
  * No dependencies on Nova API - uses ports for all external operations
  */
 
-const { FixResult } = require('./FixResult.js');
-const { LintResult } = require('./LintResult.js');
+const { createFixResult } = require('./FixResult.js');
+const { createLintResult } = require('./LintResult.js');
 
 /**
  * Service for executing ESLint operations
@@ -99,7 +99,7 @@ class LintService {
     const fixedContent = parsed.output || null;
     const hasChanges = fixedContent !== null;
 
-    return new FixResult({ fixedContent, hasChanges });
+    return createFixResult({ fixedContent, hasChanges });
   }
 
   /**
@@ -158,7 +158,7 @@ class LintService {
     }
 
     const parsed = this.parseOutput(result.stdout);
-    return new LintResult({
+    return createLintResult({
       filePath: request.filePath,
       messages: parsed.messages,
     });

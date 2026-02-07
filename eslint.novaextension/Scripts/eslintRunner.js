@@ -8,7 +8,7 @@ const {
   NovaFileSystemAdapter,
 } = require('./adapters/NovaFilesystemAdapter.js');
 const { NovaProcessAdapter } = require('./adapters/NovaProcessAdapter.js');
-const { LintRequest } = require('./domain/LintRequest.js');
+const { createLintRequest } = require('./domain/LintRequest.js');
 const { LintService } = require('./domain/LintService.js');
 
 class ESLintRunner {
@@ -59,7 +59,7 @@ class ESLintRunner {
    * @returns {Promise<Object>} ESLint result object with messages array
    */
   async lint(filePath) {
-    const request = new LintRequest({ content: null, filePath });
+    const request = createLintRequest({ content: null, filePath });
     const result = await this.lintService.lint(request);
     return { messages: result.messages };
   }
@@ -71,7 +71,7 @@ class ESLintRunner {
    * @returns {Promise<Object>} ESLint result object with messages array
    */
   async lintContent(content, filePath) {
-    const request = new LintRequest({ content, filePath });
+    const request = createLintRequest({ content, filePath });
     const result = await this.lintService.lint(request);
     return { messages: result.messages };
   }

@@ -1,23 +1,10 @@
 /**
  * Configuration port
  * Provides access to user configuration
+ *
+ * @typedef {Object} ConfigPort
+ * @property {function(): LintConfig} getLintConfig - Get lint configuration
+ * @property {function(): string|null} getWorkspacePath - Get workspace root path
  */
-class ConfigPort {
-  /**
-   * Get lint configuration
-   * @returns {LintConfig}
-   */
-  getLintConfig() {
-    throw new Error('Not implemented');
-  }
 
-  /**
-   * Get workspace root path
-   * @returns {string|null}
-   */
-  getWorkspacePath() {
-    throw new Error('Not implemented');
-  }
-}
-
-module.exports = { ConfigPort };
+module.exports = {};

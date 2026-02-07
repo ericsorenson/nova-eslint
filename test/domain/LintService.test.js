@@ -2,45 +2,30 @@ const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
 const {
-  ConfigPort,
-} = require('../../eslint.novaextension/Scripts/domain/ConfigPort.js');
-const {
-  FileSystemPort,
-} = require('../../eslint.novaextension/Scripts/domain/FileSystemPort.js');
-const {
-  FixResult,
-} = require('../../eslint.novaextension/Scripts/domain/FixResult.js');
-const {
-  LintConfig,
+  createLintConfig,
 } = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
 const {
-  LintRequest,
+  createLintRequest,
 } = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
-const {
-  LintResult,
-} = require('../../eslint.novaextension/Scripts/domain/LintResult.js');
 const {
   LintService,
 } = require('../../eslint.novaextension/Scripts/domain/LintService.js');
-const {
-  ProcessPort,
-} = require('../../eslint.novaextension/Scripts/domain/ProcessPort.js');
 
 // Mock implementations
-class MockConfigPort extends ConfigPort {
+/** @implements {ConfigPort} */
+class MockConfigPort {
   constructor({
     configPath = null,
     executablePath = null,
     workspacePath = '/workspace',
   } = {}) {
-    super();
     this.configPath = configPath;
     this.executablePath = executablePath;
     this.workspacePath = workspacePath;
   }
 
   getLintConfig() {
-    return new LintConfig({
+    return createLintConfig({
       configPath: this.configPath,
       executablePath: this.executablePath,
     });
@@ -51,9 +36,9 @@ class MockConfigPort extends ConfigPort {
   }
 }
 
-class MockFileSystemPort extends FileSystemPort {
+/** @implements {FileSystemPort} */
+class MockFileSystemPort {
   constructor(existingFiles = new Set()) {
-    super();
     this.existingFiles = existingFiles;
   }
 
@@ -69,9 +54,9 @@ class MockFileSystemPort extends FileSystemPort {
   }
 }
 
-class MockProcessPort extends ProcessPort {
+/** @implements {ProcessPort} */
+class MockProcessPort {
   constructor(mockResults = {}) {
-    super();
     this.mockResults = mockResults;
     this.executedCommands = [];
   }
@@ -110,14 +95,14 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
 
     const result = await service.lint(request);
 
-    assert.ok(result instanceof LintResult);
+    assert.ok(result.filePath);
     assert.strictEqual(result.filePath, '/workspace/test.js');
     assert.ok(Array.isArray(result.messages));
     assert.strictEqual(processPort.executedCommands.length, 1);
@@ -138,7 +123,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
@@ -163,7 +148,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: 'const foo = 1;',
       filePath: '/workspace/test.js',
     });
@@ -206,7 +191,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
@@ -238,7 +223,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
@@ -272,7 +257,7 @@ describe('Domain - LintService', () => {
 
     const result = await service.fix('/workspace/test.js');
 
-    assert.ok(result instanceof FixResult);
+    assert.ok(result.fixedContent !== undefined);
     assert.strictEqual(result.fixedContent, fixedContent);
     assert.strictEqual(result.hasChanges, true);
   });
@@ -318,14 +303,14 @@ describe('Domain - LintService', () => {
     });
 
     // First request
-    const request1 = new LintRequest({
+    const request1 = createLintRequest({
       content: null,
       filePath: '/workspace/test1.js',
     });
     await service.lint(request1);
 
     // Second request (should use cached path)
-    const request2 = new LintRequest({
+    const request2 = createLintRequest({
       content: null,
       filePath: '/workspace/test2.js',
     });
@@ -351,7 +336,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
@@ -375,7 +360,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
@@ -396,7 +381,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
@@ -417,7 +402,7 @@ describe('Domain - LintService', () => {
       processPort,
     });
 
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });

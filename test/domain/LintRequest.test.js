@@ -2,18 +2,18 @@ const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
 const {
-  LintRequest,
+  createLintRequest,
 } = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
 
 describe('Domain - LintRequest', () => {
   test('should create request with file path', () => {
-    const request = new LintRequest({ content: null, filePath: '/test.js' });
+    const request = createLintRequest({ content: null, filePath: '/test.js' });
     assert.strictEqual(request.filePath, '/test.js');
     assert.strictEqual(request.content, null);
   });
 
   test('should create request with content', () => {
-    const request = new LintRequest({
+    const request = createLintRequest({
       content: 'const foo = 1;',
       filePath: '/test.js',
     });
@@ -22,17 +22,17 @@ describe('Domain - LintRequest', () => {
   });
 
   test('should throw error when filePath is missing', () => {
-    assert.throws(() => new LintRequest({ content: null }), {
+    assert.throws(() => createLintRequest({ content: null }), {
       message: /required/,
     });
   });
 
   test('should identify when content is present', () => {
-    const withContent = new LintRequest({
+    const withContent = createLintRequest({
       content: 'code',
       filePath: '/test.js',
     });
-    const withoutContent = new LintRequest({
+    const withoutContent = createLintRequest({
       content: null,
       filePath: '/test.js',
     });

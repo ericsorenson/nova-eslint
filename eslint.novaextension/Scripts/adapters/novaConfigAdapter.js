@@ -1,12 +1,12 @@
 /**
  * Nova adapter for configuration
  * Implements ConfigPort using Nova's config API
+ * @implements {ConfigPort}
  */
 
-const { LintConfig } = require('../domain/LintConfig.js');
-const { ConfigPort } = require('../domain/ConfigPort.js');
+const { createLintConfig } = require('../domain/LintConfig.js');
 
-class NovaConfigAdapter extends ConfigPort {
+class NovaConfigAdapter {
   getLintConfig() {
     const executablePath = nova.workspace.config.get(
       'eslint.executablePath',
@@ -14,7 +14,7 @@ class NovaConfigAdapter extends ConfigPort {
     );
     const configPath = nova.workspace.config.get('eslint.configPath', 'string');
 
-    return new LintConfig({
+    return createLintConfig({
       configPath: configPath || null,
       executablePath: executablePath || null,
     });

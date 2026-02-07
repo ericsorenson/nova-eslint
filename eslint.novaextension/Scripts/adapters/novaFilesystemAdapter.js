@@ -1,11 +1,10 @@
 /**
  * Nova adapter for file system operations
  * Implements FileSystemPort using Nova's fs API
+ * @implements {FileSystemPort}
  */
 
-const { FileSystemPort } = require('../domain/FileSystemPort.js');
-
-class NovaFileSystemAdapter extends FileSystemPort {
+class NovaFileSystemAdapter {
   exists(path) {
     try {
       return nova.fs.access(path, nova.fs.constants.F_OK);

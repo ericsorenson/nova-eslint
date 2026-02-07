@@ -1,15 +1,13 @@
 /**
  * Nova adapter for process execution
  * Implements ProcessPort using Nova's Process API
+ * @implements {ProcessPort}
  */
-
-const { ProcessPort } = require('../domain/ProcessPort.js');
 
 const PROCESS_TIMEOUT_MS = 30000;
 
-class NovaProcessAdapter extends ProcessPort {
+class NovaProcessAdapter {
   constructor() {
-    super();
     this.activeProcesses = new Set();
   }
 
