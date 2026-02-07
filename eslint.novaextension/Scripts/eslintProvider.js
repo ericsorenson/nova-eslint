@@ -1,7 +1,7 @@
+const ESLintRunner = require('./EslintRunner.js');
 const {
   convertESLintMessagesToIssues,
-} = require('./convertESLintMessagesToIssues.js');
-const ESLintRunner = require('./EslintRunner.js');
+} = require('./utils/convertESLintMessagesToIssues.js');
 
 // Constants
 const SEVERITY_MAP = {

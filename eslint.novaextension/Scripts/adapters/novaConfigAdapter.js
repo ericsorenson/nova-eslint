@@ -4,7 +4,7 @@
  * @implements {ConfigPort}
  */
 
-const { createLintConfig } = require('../domain/LintConfig.js');
+const { createLintConfig } = require('../domain/models/LintConfig.js');
 
 class NovaConfigAdapter {
   getLintConfig() {

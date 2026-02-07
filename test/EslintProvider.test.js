@@ -342,8 +342,61 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
     const provider = new ESLintProvider();
 
     assert.deepStrictEqual(provider.convertToIssues(null), []);
+    assert.deepStrictEqual(provider.convertToIssues(undefined), []);
     assert.deepStrictEqual(provider.convertToIssues({}), []);
+    assert.deepStrictEqual(provider.convertToIssues({ messages: null }), []);
+    assert.deepStrictEqual(provider.convertToIssues({ messages: undefined }), []);
     assert.deepStrictEqual(provider.convertToIssues({ messages: [] }), []);
+  });
+
+  test('should create Issue without optional properties', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const result = {
+      messages: [
+        {
+          column: 5,
+          line: 1,
+          message: 'Warning message',
+          ruleId: 'some-rule',
+          severity: 1,
+          // No code, endLine, or endColumn
+        },
+      ],
+    };
+
+    const issues = provider.convertToIssues(result);
+
+    assert.strictEqual(issues.length, 1);
+    assert.strictEqual(issues[0].message, 'Warning message');
+    assert.strictEqual(issues[0].code, 'some-rule'); // Uses ruleId as fallback
+    assert.strictEqual(issues[0].endLine, undefined);
+    assert.strictEqual(issues[0].endColumn, undefined);
+  });
+
+  test('should use Info severity for unknown severity value', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const result = {
+      messages: [
+        {
+          column: 5,
+          line: 1,
+          message: 'Unknown severity',
+          ruleId: 'test-rule',
+          severity: 'unknown', // Not in SEVERITY_MAP
+        },
+      ],
+    };
+
+    const issues = provider.convertToIssues(result);
+
+    assert.strictEqual(issues.length, 1);
+    assert.strictEqual(issues[0].severity, 'info'); // Falls back to Info
   });
 });
 
@@ -432,6 +485,211 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
     assert.strictEqual(provider.pendingResolvers.size, 0);
 
     // Clean up
+    provider.dispose();
+  });
+
+  test('should not notify on unknown error type', () => {
+    setupMocks();
+
+    // Track notification calls
+    let notificationAdded = false;
+    global.nova.notifications = {
+      add: () => {
+        notificationAdded = true;
+      },
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    // Create error that doesn't match known patterns
+    const unknownError = new Error('Some random unknown error message');
+    provider.handleError(unknownError);
+
+    // Should not show notification for unknown error
+    assert.strictEqual(notificationAdded, false);
+
+    provider.dispose();
+  });
+
+  test('should return empty array for unsaved file with no path', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: null, // No path - unsaved file
+        uri: 'file://unsaved',
+      },
+    };
+
+    const promise = provider.provideIssues(editor);
+    await new Promise(resolve => setTimeout(resolve, 350)); // Wait for debounce
+    const result = await promise;
+
+    assert.deepStrictEqual(result, []);
+
+    provider.dispose();
+  });
+
+  test('should lint dirty document via stdin', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    let lintContentCalled = false;
+    let capturedContent = null;
+
+    const editor = {
+      document: {
+        getTextInRange: range => {
+          return 'const foo = 1;';
+        },
+        isDirty: true, // Document has unsaved changes
+        length: 14,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Mock runner to capture lintContent call
+    provider.runner.lintContent = (content, filePath) => {
+      lintContentCalled = true;
+      capturedContent = content;
+      return Promise.resolve({ messages: [] });
+    };
+
+    const promise = provider.provideIssues(editor);
+    await new Promise(resolve => setTimeout(resolve, 350)); // Wait for debounce
+    await promise;
+
+    assert.strictEqual(lintContentCalled, true);
+    assert.strictEqual(capturedContent, 'const foo = 1;');
+
+    provider.dispose();
+  });
+
+  test('should return empty array when ESLint is disabled', async () => {
+    setupMocks();
+
+    // Set config to return false (ESLint disabled)
+    global.nova.config.get = () => false;
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    const result = await provider.provideIssues(editor);
+
+    // Should return empty immediately without debounce
+    assert.deepStrictEqual(result, []);
+
+    provider.dispose();
+  });
+
+  test('should handle editor closed during debounce', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    const promise = provider.provideIssues(editor);
+
+    // Simulate editor being closed during debounce
+    setTimeout(() => {
+      editor.document = null;
+    }, 100);
+
+    await new Promise(resolve => setTimeout(resolve, 350)); // Wait for debounce
+    const result = await promise;
+
+    assert.deepStrictEqual(result, []);
+
+    provider.dispose();
+  });
+
+  test('should skip lint if already in progress for URI', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Manually add URI to activeLints to simulate in-progress lint
+    provider.activeLints.add('file://test/file.js');
+
+    const promise = provider.provideIssues(editor);
+    await new Promise(resolve => setTimeout(resolve, 350)); // Wait for debounce
+    const result = await promise;
+
+    // Should return empty because lint is already active
+    assert.deepStrictEqual(result, []);
+
+    provider.dispose();
+  });
+
+  test('should handle error during lintDocument', async () => {
+    setupMocks();
+
+    let errorHandled = false;
+    global.nova.notifications = {
+      add: () => {
+        errorHandled = true;
+      },
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Mock runner to throw error
+    provider.runner.lint = () => {
+      return Promise.reject(new Error('ESLint not found'));
+    };
+
+    const promise = provider.provideIssues(editor);
+    await new Promise(resolve => setTimeout(resolve, 350)); // Wait for debounce
+    const result = await promise;
+
+    // Should return empty on error
+    assert.deepStrictEqual(result, []);
+    // Should have called handleError which shows notification
+    assert.strictEqual(errorHandled, true);
+
     provider.dispose();
   });
 });

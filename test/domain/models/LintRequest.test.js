@@ -3,7 +3,7 @@ const { describe, test } = require('node:test');
 
 const {
   createLintRequest,
-} = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
+} = require('../../../eslint.novaextension/Scripts/domain/models/LintRequest.js');
 
 describe('Domain - LintRequest', () => {
   test('should create request with file path', () => {

@@ -2,14 +2,14 @@ const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
 const {
-  createLintConfig,
-} = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
-const {
-  createLintRequest,
-} = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
-const {
   LintService,
 } = require('../../eslint.novaextension/Scripts/domain/LintService.js');
+const {
+  createLintConfig,
+} = require('../../eslint.novaextension/Scripts/domain/models/LintConfig.js');
+const {
+  createLintRequest,
+} = require('../../eslint.novaextension/Scripts/domain/models/LintRequest.js');
 
 // Mock implementations
 /** @implements {ConfigPort} */

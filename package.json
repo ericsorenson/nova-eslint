@@ -4,8 +4,8 @@
   "description": "ESLint integration for the Nova code editor",
   "private": true,
   "scripts": {
-    "test": "node --test test/*.test.js test/domain/*.test.js test/adapters/*.test.js",
-    "test:coverage": "node --test --experimental-test-coverage test/**/*.test.js",
+    "test": "node --test 'test/**/*.test.js'",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-exclude='test/**' 'test/**/*.test.js'",
     "lint": "eslint eslint.novaextension/**/*.js test/**/*.js eslint.config.mjs",
     "lint:fix": "eslint --fix eslint.novaextension/**/*.js test/**/*.js eslint.config.mjs",
     "renovate": "renovate --platform=local",

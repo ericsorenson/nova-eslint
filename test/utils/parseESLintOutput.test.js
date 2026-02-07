@@ -7,7 +7,7 @@ const { describe, test } = require('node:test');
 
 const {
   parseESLintOutput,
-} = require('../eslint.novaextension/Scripts/parseESLintOutput.js');
+} = require('../../eslint.novaextension/Scripts/utils/parseESLintOutput.js');
 
 describe('parseESLintOutput', () => {
   test('should parse valid ESLint JSON output', () => {

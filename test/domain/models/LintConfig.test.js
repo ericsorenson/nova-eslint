@@ -3,7 +3,7 @@ const { describe, test } = require('node:test');
 
 const {
   createLintConfig,
-} = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
+} = require('../../../eslint.novaextension/Scripts/domain/models/LintConfig.js');
 
 describe('Domain - LintConfig', () => {
   test('should create config with defaults', () => {

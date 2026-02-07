@@ -7,7 +7,7 @@ const { describe, test } = require('node:test');
 
 const {
   convertESLintMessagesToIssues,
-} = require('../eslint.novaextension/Scripts/convertESLintMessagesToIssues.js');
+} = require('../../eslint.novaextension/Scripts/utils/convertESLintMessagesToIssues.js');
 
 describe('convertESLintMessagesToIssues', () => {
   test('should convert valid ESLint messages to issues', () => {

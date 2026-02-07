@@ -3,7 +3,7 @@ const { describe, test } = require('node:test');
 
 const {
   createLintResult,
-} = require('../../eslint.novaextension/Scripts/domain/LintResult.js');
+} = require('../../../eslint.novaextension/Scripts/domain/models/LintResult.js');
 
 describe('Domain - LintResult', () => {
   test('should create result with messages', () => {

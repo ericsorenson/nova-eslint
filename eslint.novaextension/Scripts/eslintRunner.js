@@ -8,8 +8,8 @@ const {
   NovaFileSystemAdapter,
 } = require('./adapters/NovaFilesystemAdapter.js');
 const { NovaProcessAdapter } = require('./adapters/NovaProcessAdapter.js');
-const { createLintRequest } = require('./domain/LintRequest.js');
 const { LintService } = require('./domain/LintService.js');
+const { createLintRequest } = require('./domain/models/LintRequest.js');
 
 class ESLintRunner {
   constructor() {

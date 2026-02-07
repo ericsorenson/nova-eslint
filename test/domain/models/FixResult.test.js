@@ -3,7 +3,7 @@ const { describe, test } = require('node:test');
 
 const {
   createFixResult,
-} = require('../../eslint.novaextension/Scripts/domain/FixResult.js');
+} = require('../../../eslint.novaextension/Scripts/domain/models/FixResult.js');
 
 describe('Domain - FixResult', () => {
   test('should create result with fixed content', () => {
