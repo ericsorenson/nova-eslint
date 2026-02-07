@@ -3,11 +3,6 @@
  * These functions have no side effects and are easily testable
  */
 
-/**
- * Convert ESLint messages to issue objects
- * @param {Array} messages - ESLint messages array
- * @returns {Array} Array of issue-like objects
- */
 function convertESLintMessagesToIssues(messages) {
   if (!messages || !Array.isArray(messages)) {
     return [];
@@ -31,8 +26,8 @@ function convertESLintMessagesToIssues(messages) {
       message: msg.message,
     };
 
-    // Map ESLint severity to issue severity
-    // ESLint: 1 = warning, 2 = error
+    // Map ESLint severity to issue severity (see https://eslint.org/docs/latest/use/formatters/)
+    // ESLint uses numeric codes: 0=off, 1=warn, 2=error
     switch (msg.severity) {
       case 1:
         issue.severity = 'warning';
@@ -63,11 +58,6 @@ function convertESLintMessagesToIssues(messages) {
   return issues;
 }
 
-/**
- * Parse ESLint JSON output
- * @param {string} jsonOutput - ESLint JSON output string
- * @returns {Object|null} Parsed result or null if invalid
- */
 function parseESLintOutput(jsonOutput) {
   if (!jsonOutput || typeof jsonOutput !== 'string') {
     return null;

@@ -150,7 +150,8 @@ class LintService {
       stdin: request.hasContent() ? request.content : null,
     });
 
-    // Exit codes: 0 = clean, 1 = lint errors (success), 2 = fatal error
+    // Exit codes per ESLint docs: 0 = clean, 1 = lint errors (not a failure), 2 = fatal error
+    // See https://eslint.org/docs/latest/use/command-line-interface/#exit-codes
     if (result.exitCode === 2) {
       throw new Error(`ESLint failed: ${result.stderr}`);
     }

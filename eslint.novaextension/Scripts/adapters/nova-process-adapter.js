@@ -41,6 +41,9 @@ class NovaProcessAdapter extends ProcessPort {
       let stderr = '';
       let isSettled = false;
 
+      // Guard pattern to prevent promise double-resolution
+      // Necessary because multiple events (timeout, exit, error) can trigger settlement
+      // The isSettled flag ensures resolve/reject is called exactly once
       const settleOnce = (exitCode, error = null) => {
         if (isSettled) return;
         isSettled = true;
