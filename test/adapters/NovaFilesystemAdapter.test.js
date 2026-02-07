@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { describe, test, beforeEach } = require('node:test');
+const { beforeEach, describe, test } = require('node:test');
 
 const {
   NovaFileSystemAdapter,
@@ -12,10 +12,9 @@ describe('NovaFilesystemAdapter', () => {
   beforeEach(() => {
     // Mock Nova fs API
     mockFs = {
-      access: (path, mode) => {
+      access: (path, _mode) => {
         if (path === '/exists/file.js') return true;
-        if (path === '/throws/error.js')
-          throw new Error('Permission denied');
+        if (path === '/throws/error.js') throw new Error('Permission denied');
         return false;
       },
       constants: {
@@ -24,14 +23,14 @@ describe('NovaFilesystemAdapter', () => {
       open: path => {
         if (path === '/test/file.js') {
           return {
-            read: () => 'file content',
             close: () => {},
+            read: () => 'file content',
           };
         }
         if (path === '/test/empty.js') {
           return {
-            read: () => '',
             close: () => {},
+            read: () => '',
           };
         }
         throw new Error('File not found');
@@ -84,10 +83,10 @@ describe('NovaFilesystemAdapter', () => {
   test('readFile should close file after reading', () => {
     let closeCalled = false;
     mockFs.open = () => ({
-      read: () => 'content',
       close: () => {
         closeCalled = true;
       },
+      read: () => 'content',
     });
 
     adapter.readFile('/test/file.js');
@@ -98,11 +97,11 @@ describe('NovaFilesystemAdapter', () => {
   test('readFile should close file even if read throws', () => {
     let closeCalled = false;
     mockFs.open = () => ({
-      read: () => {
-        throw new Error('Read error');
-      },
       close: () => {
         closeCalled = true;
+      },
+      read: () => {
+        throw new Error('Read error');
       },
     });
 

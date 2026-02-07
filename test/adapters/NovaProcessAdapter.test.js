@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { describe, test, beforeEach } = require('node:test');
+const { beforeEach, describe, test } = require('node:test');
 
 const {
   NovaProcessAdapter,
@@ -22,27 +22,27 @@ describe('NovaProcessAdapter', () => {
         // Mock stdin writer
         this.stdin = {
           getWriter: () => ({
+            close: () => {
+              this.stdinClosed = true;
+            },
             ready: Promise.resolve(),
             write: data => {
               this.stdinData = data;
-            },
-            close: () => {
-              this.stdinClosed = true;
             },
           }),
         };
       }
 
-      onStdout(callback) {
-        this.callbacks.stdout = callback;
+      onDidExit(callback) {
+        this.callbacks.exit = callback;
       }
 
       onStderr(callback) {
         this.callbacks.stderr = callback;
       }
 
-      onDidExit(callback) {
-        this.callbacks.exit = callback;
+      onStdout(callback) {
+        this.callbacks.stdout = callback;
       }
 
       start() {
@@ -67,8 +67,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should run process and return output', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node', '--version'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
 
@@ -85,8 +85,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should collect multiple stdout chunks', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
 
@@ -102,8 +102,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should collect stderr output', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
 
@@ -118,8 +118,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should handle stdin input', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
       stdin: 'console.log("hello");',
     });
@@ -136,8 +136,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should track active processes', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
 
@@ -156,8 +156,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should prevent double-resolution with settleOnce guard', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
 
@@ -175,8 +175,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should handle process start failure', async () => {
     const promise = adapter.execute({
-      command: 'fail-start',
       args: [],
+      command: 'fail-start',
       cwd: '/test',
     });
 
@@ -189,8 +189,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should use provided cwd', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['pwd'],
+      command: '/usr/bin/env',
       cwd: '/custom/path',
     });
 
@@ -203,8 +203,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should handle undefined cwd', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['pwd'],
+      command: '/usr/bin/env',
     });
 
     assert.strictEqual(mockProcess.options.cwd, undefined);
@@ -216,15 +216,15 @@ describe('NovaProcessAdapter', () => {
   test('dispose should terminate all active processes', async () => {
     // Start multiple processes
     const promise1 = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
     const process1 = mockProcess;
 
     const promise2 = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
     const process2 = mockProcess;
@@ -245,8 +245,8 @@ describe('NovaProcessAdapter', () => {
 
   test('dispose should handle process termination errors', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
     const process = mockProcess;
@@ -270,8 +270,8 @@ describe('NovaProcessAdapter', () => {
 
   test('dispose should clear activeProcesses Set', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
     });
 
@@ -287,8 +287,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should handle null stdin', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
       stdin: null,
     });
@@ -302,8 +302,8 @@ describe('NovaProcessAdapter', () => {
 
   test('execute should handle undefined stdin', async () => {
     const promise = adapter.execute({
-      command: '/usr/bin/env',
       args: ['node'],
+      command: '/usr/bin/env',
       cwd: '/test',
       stdin: undefined,
     });

@@ -1,18 +1,38 @@
 const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
-const { LintService } = require('../../eslint.novaextension/Scripts/domain/LintService.js');
-const { FixResult } = require('../../eslint.novaextension/Scripts/domain/FixResult.js');
-const { LintConfig } = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
-const { LintRequest } = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
-const { LintResult } = require('../../eslint.novaextension/Scripts/domain/LintResult.js');
-const { ConfigPort } = require('../../eslint.novaextension/Scripts/domain/ConfigPort.js');
-const { FileSystemPort } = require('../../eslint.novaextension/Scripts/domain/FileSystemPort.js');
-const { ProcessPort } = require('../../eslint.novaextension/Scripts/domain/ProcessPort.js');
+const {
+  ConfigPort,
+} = require('../../eslint.novaextension/Scripts/domain/ConfigPort.js');
+const {
+  FileSystemPort,
+} = require('../../eslint.novaextension/Scripts/domain/FileSystemPort.js');
+const {
+  FixResult,
+} = require('../../eslint.novaextension/Scripts/domain/FixResult.js');
+const {
+  LintConfig,
+} = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
+const {
+  LintRequest,
+} = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
+const {
+  LintResult,
+} = require('../../eslint.novaextension/Scripts/domain/LintResult.js');
+const {
+  LintService,
+} = require('../../eslint.novaextension/Scripts/domain/LintService.js');
+const {
+  ProcessPort,
+} = require('../../eslint.novaextension/Scripts/domain/ProcessPort.js');
 
 // Mock implementations
 class MockConfigPort extends ConfigPort {
-  constructor({ configPath = null, executablePath = null, workspacePath = '/workspace' } = {}) {
+  constructor({
+    configPath = null,
+    executablePath = null,
+    workspacePath = '/workspace',
+  } = {}) {
     super();
     this.configPath = configPath;
     this.executablePath = executablePath;
@@ -84,7 +104,11 @@ describe('Domain - LintService', () => {
     );
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
@@ -100,13 +124,19 @@ describe('Domain - LintService', () => {
   });
 
   test('should lint file with custom config', async () => {
-    const configPort = new MockConfigPort({ configPath: '/workspace/.eslintrc.js' });
+    const configPort = new MockConfigPort({
+      configPath: '/workspace/.eslintrc.js',
+    });
     const fileSystemPort = new MockFileSystemPort(
       new Set(['/workspace/node_modules/.bin/eslint']),
     );
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
@@ -127,7 +157,11 @@ describe('Domain - LintService', () => {
     );
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: 'const foo = 1;',
@@ -148,17 +182,29 @@ describe('Domain - LintService', () => {
       new Set(['/workspace/node_modules/.bin/eslint']),
     );
     const mockMessages = [
-      { column: 1, line: 1, message: 'Unexpected var', ruleId: 'no-var', severity: 2 },
+      {
+        column: 1,
+        line: 1,
+        message: 'Unexpected var',
+        ruleId: 'no-var',
+        severity: 2,
+      },
     ];
     const processPort = new MockProcessPort({
-      [JSON.stringify({ args: ['node', '/workspace/node_modules/.bin/eslint', '--format'] })]: {
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
         exitCode: 1, // Lint errors found
         stderr: '',
         stdout: JSON.stringify([{ messages: mockMessages }]),
       },
     });
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
@@ -177,24 +223,29 @@ describe('Domain - LintService', () => {
       new Set(['/workspace/node_modules/.bin/eslint']),
     );
     const processPort = new MockProcessPort({
-      [JSON.stringify({ args: ['node', '/workspace/node_modules/.bin/eslint', '--format'] })]: {
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
         exitCode: 2, // Config error
         stderr: 'Config file not found',
         stdout: '',
       },
     });
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
 
-    await assert.rejects(
-      async () => await service.lint(request),
-      { message: /ESLint failed/ },
-    );
+    await assert.rejects(async () => await service.lint(request), {
+      message: /ESLint failed/,
+    });
   });
 
   test('should fix file and return fixed content', async () => {
@@ -204,14 +255,20 @@ describe('Domain - LintService', () => {
     );
     const fixedContent = 'const foo = 1;\n';
     const processPort = new MockProcessPort({
-      [JSON.stringify({ args: ['node', '/workspace/node_modules/.bin/eslint', '--format'] })]: {
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
         exitCode: 0,
         stderr: '',
         stdout: JSON.stringify([{ messages: [], output: fixedContent }]),
       },
     });
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const result = await service.fix('/workspace/test.js');
 
@@ -226,14 +283,20 @@ describe('Domain - LintService', () => {
       new Set(['/workspace/node_modules/.bin/eslint']),
     );
     const processPort = new MockProcessPort({
-      [JSON.stringify({ args: ['node', '/workspace/node_modules/.bin/eslint', '--format'] })]: {
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
         exitCode: 0,
         stderr: '',
         stdout: JSON.stringify([{ messages: [] }]),
       },
     });
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const result = await service.fix('/workspace/test.js');
 
@@ -248,7 +311,11 @@ describe('Domain - LintService', () => {
     );
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     // First request
     const request1 = new LintRequest({
@@ -278,7 +345,11 @@ describe('Domain - LintService', () => {
     );
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
@@ -298,17 +369,20 @@ describe('Domain - LintService', () => {
     const fileSystemPort = new MockFileSystemPort();
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
 
-    await assert.rejects(
-      async () => await service.lint(request),
-      { message: /workspace/ },
-    );
+    await assert.rejects(async () => await service.lint(request), {
+      message: /workspace/,
+    });
   });
 
   test('should throw error when ESLint not found', async () => {
@@ -316,17 +390,20 @@ describe('Domain - LintService', () => {
     const fileSystemPort = new MockFileSystemPort(); // No ESLint executable
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,
       filePath: '/workspace/test.js',
     });
 
-    await assert.rejects(
-      async () => await service.lint(request),
-      { message: /not found/ },
-    );
+    await assert.rejects(async () => await service.lint(request), {
+      message: /not found/,
+    });
   });
 
   test('should use custom executable path', async () => {
@@ -334,7 +411,11 @@ describe('Domain - LintService', () => {
     const fileSystemPort = new MockFileSystemPort();
     const processPort = new MockProcessPort();
 
-    const service = new LintService({ configPort, fileSystemPort, processPort });
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
 
     const request = new LintRequest({
       content: null,

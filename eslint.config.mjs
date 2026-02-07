@@ -46,6 +46,40 @@ export default [
     },
   },
   {
+    files: ['test/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: {
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        clearImmediate: 'readonly',
+        clearInterval: 'readonly',
+        clearTimeout: 'readonly',
+        console: 'readonly',
+        exports: 'readonly',
+        global: 'writable',
+        module: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        setImmediate: 'readonly',
+        setInterval: 'readonly',
+        setTimeout: 'readonly',
+      },
+      sourceType: 'commonjs',
+    },
+    rules: {
+      'no-console': 'off',
+      'no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.mjs'],
     languageOptions: {
       ecmaVersion: 2022,

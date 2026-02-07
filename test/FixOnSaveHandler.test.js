@@ -5,7 +5,7 @@ describe('FixOnSaveHandler - WeakMap Tracking Tests', () => {
   test('fixingEditors WeakMap should prevent simultaneous fixes on same editor', () => {
     // Simulate the fixingEditors WeakMap behavior
     const fixingEditors = new WeakMap();
-    const editor1 = { id: 'editor1', document: { path: '/test/file.js' } };
+    const editor1 = { document: { path: '/test/file.js' }, id: 'editor1' };
 
     // First fix attempt
     const canFix1 = !fixingEditors.has(editor1);
@@ -30,8 +30,8 @@ describe('FixOnSaveHandler - WeakMap Tracking Tests', () => {
   test('fixingEditors WeakMap should allow fixes on different editors with same file', () => {
     // Simulate the fixingEditors WeakMap behavior (split view scenario)
     const fixingEditors = new WeakMap();
-    const editor1 = { id: 'editor1', document: { path: '/test/file.js' } };
-    const editor2 = { id: 'editor2', document: { path: '/test/file.js' } };
+    const editor1 = { document: { path: '/test/file.js' }, id: 'editor1' };
+    const editor2 = { document: { path: '/test/file.js' }, id: 'editor2' };
 
     // First fix attempt on editor1
     const canFix1 = !fixingEditors.has(editor1);
@@ -57,7 +57,7 @@ describe('FixOnSaveHandler - WeakMap Tracking Tests', () => {
   test('fixingEditors helper functions should manage state correctly', () => {
     // Simulate the helper functions
     const fixingEditors = new WeakMap();
-    const editor = { id: 'editor1', document: { path: '/test/file.js' } };
+    const editor = { document: { path: '/test/file.js' }, id: 'editor1' };
 
     const startFixing = ed => {
       fixingEditors.set(ed, 'mock-timeout-id');

@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { describe, test, beforeEach } = require('node:test');
+const { beforeEach, describe, test } = require('node:test');
 
 const {
   NovaConfigAdapter,
@@ -15,7 +15,7 @@ describe('NovaConfigAdapter', () => {
     global.nova = {
       workspace: {
         config: {
-          get: (key, type) => {
+          get: (key, _type) => {
             return mockWorkspaceConfig.get(key);
           },
         },

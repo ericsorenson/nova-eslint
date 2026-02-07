@@ -88,10 +88,9 @@ describe('ESLintRunner - Adapter Tests', () => {
     const ESLintRunner = require('../eslint.novaextension/Scripts/EslintRunner.js');
     const runner = new ESLintRunner();
 
-    await assert.rejects(
-      async () => await runner.lint('/test/file.js'),
-      { message: /not found/ },
-    );
+    await assert.rejects(async () => await runner.lint('/test/file.js'), {
+      message: /not found/,
+    });
   });
 
   test('should throw error when fixing without ESLint installed', async () => {
@@ -111,10 +110,9 @@ describe('ESLintRunner - Adapter Tests', () => {
     const ESLintRunner = require('../eslint.novaextension/Scripts/EslintRunner.js');
     const runner = new ESLintRunner();
 
-    await assert.rejects(
-      async () => await runner.fix('/test/file.js'),
-      { message: /not found/ },
-    );
+    await assert.rejects(async () => await runner.fix('/test/file.js'), {
+      message: /not found/,
+    });
   });
 
   test('should throw error when linting content without ESLint installed', async () => {
