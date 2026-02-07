@@ -49,7 +49,7 @@ class ESLintProvider {
       issue.message = obj.message;
       issue.line = obj.line;
       issue.column = obj.column;
-      issue.severity = SEVERITY_MAP[obj.severity] || IssueSeverity.Info;
+      issue.severity = SEVERITY_MAP[obj.severity];
       issue.source = ISSUE_SOURCE;
 
       if (obj.code) issue.code = obj.code;

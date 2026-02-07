@@ -376,7 +376,7 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
     assert.strictEqual(issues[0].endColumn, undefined);
   });
 
-  test('should use Info severity for unknown severity value', () => {
+  test('should not set optional properties when they are falsy', () => {
     setupMocks();
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
@@ -384,11 +384,13 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
     const result = {
       messages: [
         {
+          code: '', // Empty string is falsy
           column: 5,
+          endColumn: 0, // 0 is falsy
+          endLine: 0, // 0 is falsy
           line: 1,
-          message: 'Unknown severity',
-          ruleId: 'test-rule',
-          severity: 'unknown', // Not in SEVERITY_MAP
+          message: 'Test message',
+          severity: 'info',
         },
       ],
     };
@@ -396,8 +398,12 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
     const issues = provider.convertToIssues(result);
 
     assert.strictEqual(issues.length, 1);
-    assert.strictEqual(issues[0].severity, 'info'); // Falls back to Info
+    // Falsy values should not be set
+    assert.strictEqual(issues[0].code, undefined);
+    assert.strictEqual(issues[0].endLine, undefined);
+    assert.strictEqual(issues[0].endColumn, undefined);
   });
+
 });
 
 describe('ESLintProvider - Debounce Behavior Tests', () => {
@@ -689,6 +695,188 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
     assert.deepStrictEqual(result, []);
     // Should have called handleError which shows notification
     assert.strictEqual(errorHandled, true);
+
+    provider.dispose();
+  });
+
+  test('should handle dispose when runner is null', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    // Set runner to null
+    provider.runner = null;
+
+    // Should not throw
+    assert.doesNotThrow(() => {
+      provider.dispose();
+    });
+  });
+
+  test('should handle missing resolver during debounce cancellation', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Mock runner
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    // Start first lint
+    const promise1 = provider.provideIssues(editor);
+
+    // Get the requestId that was stored
+    const pending = provider.pendingLints.get('file://test/file.js');
+    const requestId = pending.requestId;
+
+    // Manually delete the resolver to simulate edge case
+    provider.pendingResolvers.delete(requestId);
+
+    // Start second lint immediately (should trigger debounce cancellation)
+    const promise2 = provider.provideIssues(editor);
+
+    // Should not throw even though oldResolver is undefined
+    await new Promise(resolve => setTimeout(resolve, 350));
+    await promise2;
+
+    provider.dispose();
+  });
+
+  test('should handle missing resolver when editor closes', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    provider.provideIssues(editor);
+
+    // Delete resolver before timeout fires
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const pending = provider.pendingLints.get('file://test/file.js');
+    if (pending) {
+      provider.pendingResolvers.delete(pending.requestId);
+    }
+
+    // Simulate editor closing
+    editor.document = null;
+
+    // Wait for debounce to complete - should not throw even though resolver is undefined
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    provider.dispose();
+  });
+
+  test('should handle missing resolver when lint is already active', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Add URI to activeLints
+    provider.activeLints.add('file://test/file.js');
+
+    provider.provideIssues(editor);
+
+    // Delete resolver before timeout fires
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const pending = provider.pendingLints.get('file://test/file.js');
+    if (pending) {
+      provider.pendingResolvers.delete(pending.requestId);
+    }
+
+    // Wait for debounce to complete - should not throw even though resolver is undefined
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    provider.dispose();
+  });
+
+  test('should handle missing resolver on successful lint', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    provider.provideIssues(editor);
+
+    // Delete resolver before lint completes
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const pending = provider.pendingLints.get('file://test/file.js');
+    if (pending) {
+      provider.pendingResolvers.delete(pending.requestId);
+    }
+
+    // Wait for debounce and lint to complete - should not throw even though resolver is undefined
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    provider.dispose();
+  });
+
+  test('should handle missing resolver on lint error', async () => {
+    setupMocks();
+
+    global.nova.notifications = {
+      add: () => {},
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    provider.runner.lint = () => Promise.reject(new Error('ESLint not found'));
+
+    provider.provideIssues(editor);
+
+    // Delete resolver before error occurs
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const pending = provider.pendingLints.get('file://test/file.js');
+    if (pending) {
+      provider.pendingResolvers.delete(pending.requestId);
+    }
+
+    // Wait for debounce and error to occur - should not throw even though resolver is undefined
+    await new Promise(resolve => setTimeout(resolve, 350));
 
     provider.dispose();
   });
