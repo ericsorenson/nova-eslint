@@ -9,7 +9,7 @@ const { describe, test } = require('node:test');
 const {
   convertESLintMessagesToIssues,
   parseESLintOutput,
-} = require('../eslint.novaextension/Scripts/eslint-utils.js');
+} = require('../eslint.novaextension/Scripts/eslintUtils.js');
 
 describe('convertESLintMessagesToIssues', () => {
   test('should convert valid ESLint messages to issues', () => {

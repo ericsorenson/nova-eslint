@@ -3,13 +3,13 @@
  * Maintains backward compatibility while delegating to domain logic
  */
 
-const { NovaConfigAdapter } = require('./adapters/nova-config-adapter.js');
+const { NovaConfigAdapter } = require('./adapters/novaConfigAdapter.js');
 const {
   NovaFileSystemAdapter,
-} = require('./adapters/nova-filesystem-adapter.js');
-const { NovaProcessAdapter } = require('./adapters/nova-process-adapter.js');
-const { LintService } = require('./domain/lint-service.js');
-const { LintRequest } = require('./domain/models.js');
+} = require('./adapters/novaFilesystemAdapter.js');
+const { NovaProcessAdapter } = require('./adapters/novaProcessAdapter.js');
+const { LintRequest } = require('./domain/lintRequest.js');
+const { LintService } = require('./domain/lintService.js');
 
 class ESLintRunner {
   constructor() {

@@ -17,7 +17,7 @@ describe('ESLintRunner - Adapter Tests', () => {
       },
     };
 
-    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslintRunner.js');
     const runner = new ESLintRunner();
 
     // Should not throw
@@ -42,7 +42,7 @@ describe('ESLintRunner - Adapter Tests', () => {
       },
     };
 
-    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslintRunner.js');
     const runner = new ESLintRunner();
 
     // Should not throw
@@ -63,7 +63,7 @@ describe('ESLintRunner - Adapter Tests', () => {
       },
     };
 
-    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslintRunner.js');
     const runner = new ESLintRunner();
 
     // Verify runner has lintService
@@ -85,7 +85,7 @@ describe('ESLintRunner - Adapter Tests', () => {
       },
     };
 
-    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslintRunner.js');
     const runner = new ESLintRunner();
 
     await assert.rejects(
@@ -108,7 +108,7 @@ describe('ESLintRunner - Adapter Tests', () => {
       },
     };
 
-    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslintRunner.js');
     const runner = new ESLintRunner();
 
     await assert.rejects(
@@ -131,7 +131,7 @@ describe('ESLintRunner - Adapter Tests', () => {
       },
     };
 
-    const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
+    const ESLintRunner = require('../eslint.novaextension/Scripts/eslintRunner.js');
     const runner = new ESLintRunner();
 
     await assert.rejects(

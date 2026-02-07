@@ -1,12 +1,10 @@
 const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
-const {
-  FixResult,
-  LintConfig,
-  LintRequest,
-  LintResult,
-} = require('../../eslint.novaextension/Scripts/domain/models.js');
+const { FixResult } = require('../../eslint.novaextension/Scripts/domain/fixResult.js');
+const { LintConfig } = require('../../eslint.novaextension/Scripts/domain/lintConfig.js');
+const { LintRequest } = require('../../eslint.novaextension/Scripts/domain/lintRequest.js');
+const { LintResult } = require('../../eslint.novaextension/Scripts/domain/lintResult.js');
 
 describe('Domain - LintConfig', () => {
   test('should create config with defaults', () => {

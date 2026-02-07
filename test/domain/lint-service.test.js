@@ -1,13 +1,11 @@
 const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
-const { LintService } = require('../../eslint.novaextension/Scripts/domain/lint-service.js');
-const {
-  FixResult,
-  LintConfig,
-  LintRequest,
-  LintResult,
-} = require('../../eslint.novaextension/Scripts/domain/models.js');
+const { LintService } = require('../../eslint.novaextension/Scripts/domain/lintService.js');
+const { FixResult } = require('../../eslint.novaextension/Scripts/domain/fixResult.js');
+const { LintConfig } = require('../../eslint.novaextension/Scripts/domain/lintConfig.js');
+const { LintRequest } = require('../../eslint.novaextension/Scripts/domain/lintRequest.js');
+const { LintResult } = require('../../eslint.novaextension/Scripts/domain/lintResult.js');
 const {
   ConfigPort,
   FileSystemPort,
