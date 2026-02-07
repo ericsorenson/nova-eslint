@@ -70,14 +70,24 @@ npm install               # Install updated dependencies
 
 **Test Coverage:**
 
-Test coverage includes:
-- **ESLintRunner:** Process execution, ESLint discovery, argument building, stdin/stdout communication
+The test suite includes both integration tests (with Nova mocks) and domain tests (framework-independent):
+
+**Integration Tests:**
 - **ESLintProvider:** Issue conversion, debouncing, error notifications, disposal
+- **ESLintRunner:** Adapter functionality and backward compatibility
 - **ESLintUtils:** Pure utility functions for parsing and conversion
 - **Main:** Fix-on-save tracking and configuration management
+
+**Domain Tests (No Nova Dependencies):**
+- **LintService:** Core linting logic, ESLint execution, caching, error handling
+- **Domain Models:** LintConfig, LintRequest, LintResult, FixResult
+
+Test coverage includes:
 - Bug fixes (memory leaks, disposal, caching)
 - Error handling and notification logic
 - Exit code handling and timeout scenarios
+- Process execution and stdin/stdout communication
+- Fix-on-save cycle prevention
 
 Tests are located in the `test/` directory and use Node.js's native test runner (no external libraries required).
 

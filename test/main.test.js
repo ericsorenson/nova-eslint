@@ -2,55 +2,84 @@ const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
 describe('Main - Fix-on-Save Tracking Tests', () => {
-  test('fixingSaveFiles Set should prevent simultaneous fixes on same file', () => {
-    // Simulate the fixingSaveFiles Set behavior
-    const fixingSaveFiles = new Set();
-    const filePath = '/test/file.js';
+  test('fixingEditors WeakMap should prevent simultaneous fixes on same editor', () => {
+    // Simulate the fixingEditors WeakMap behavior
+    const fixingEditors = new WeakMap();
+    const editor1 = { id: 'editor1', document: { path: '/test/file.js' } };
 
     // First fix attempt
-    const canFix1 = !fixingSaveFiles.has(filePath);
+    const canFix1 = !fixingEditors.has(editor1);
     assert.strictEqual(canFix1, true);
 
     if (canFix1) {
-      fixingSaveFiles.add(filePath);
+      fixingEditors.set(editor1, 'timeout-id');
     }
 
-    // Second simultaneous fix attempt should be blocked
-    const canFix2 = !fixingSaveFiles.has(filePath);
+    // Second simultaneous fix attempt on same editor should be blocked
+    const canFix2 = !fixingEditors.has(editor1);
     assert.strictEqual(canFix2, false);
 
     // After first fix completes
-    fixingSaveFiles.delete(filePath);
+    fixingEditors.delete(editor1);
 
     // Third fix attempt should now work
-    const canFix3 = !fixingSaveFiles.has(filePath);
+    const canFix3 = !fixingEditors.has(editor1);
     assert.strictEqual(canFix3, true);
   });
 
-  test('fixingSaveFiles Set should allow fixes on different files simultaneously', () => {
-    // Simulate the fixingSaveFiles Set behavior
-    const fixingSaveFiles = new Set();
-    const filePath1 = '/test/file1.js';
-    const filePath2 = '/test/file2.js';
+  test('fixingEditors WeakMap should allow fixes on different editors with same file', () => {
+    // Simulate the fixingEditors WeakMap behavior (split view scenario)
+    const fixingEditors = new WeakMap();
+    const editor1 = { id: 'editor1', document: { path: '/test/file.js' } };
+    const editor2 = { id: 'editor2', document: { path: '/test/file.js' } };
 
-    // First fix attempt on file1
-    const canFix1 = !fixingSaveFiles.has(filePath1);
+    // First fix attempt on editor1
+    const canFix1 = !fixingEditors.has(editor1);
     assert.strictEqual(canFix1, true);
-    fixingSaveFiles.add(filePath1);
+    fixingEditors.set(editor1, 'timeout-id-1');
 
-    // Second fix attempt on file2 should be allowed
-    const canFix2 = !fixingSaveFiles.has(filePath2);
+    // Second fix attempt on editor2 (split view, same file) should be allowed
+    const canFix2 = !fixingEditors.has(editor2);
     assert.strictEqual(canFix2, true);
-    fixingSaveFiles.add(filePath2);
+    fixingEditors.set(editor2, 'timeout-id-2');
 
-    // Both files should be in the set
-    assert.strictEqual(fixingSaveFiles.size, 2);
-    assert.ok(fixingSaveFiles.has(filePath1));
-    assert.ok(fixingSaveFiles.has(filePath2));
+    // Both editors should be tracked
+    assert.ok(fixingEditors.has(editor1));
+    assert.ok(fixingEditors.has(editor2));
 
     // Clean up
-    fixingSaveFiles.delete(filePath1);
-    fixingSaveFiles.delete(filePath2);
-    assert.strictEqual(fixingSaveFiles.size, 0);
+    fixingEditors.delete(editor1);
+    fixingEditors.delete(editor2);
+    assert.strictEqual(fixingEditors.has(editor1), false);
+    assert.strictEqual(fixingEditors.has(editor2), false);
+  });
+
+  test('fixingEditors helper functions should manage state correctly', () => {
+    // Simulate the helper functions
+    const fixingEditors = new WeakMap();
+    const editor = { id: 'editor1', document: { path: '/test/file.js' } };
+
+    const startFixing = ed => {
+      fixingEditors.set(ed, 'mock-timeout-id');
+    };
+
+    const stopFixing = ed => {
+      fixingEditors.delete(ed);
+    };
+
+    const isFixing = ed => {
+      return fixingEditors.has(ed);
+    };
+
+    // Initially not fixing
+    assert.strictEqual(isFixing(editor), false);
+
+    // Start fixing
+    startFixing(editor);
+    assert.strictEqual(isFixing(editor), true);
+
+    // Stop fixing
+    stopFixing(editor);
+    assert.strictEqual(isFixing(editor), false);
   });
 });

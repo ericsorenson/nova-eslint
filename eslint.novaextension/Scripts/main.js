@@ -12,9 +12,20 @@ const CONFIG_KEY_CONFIG_PATH = 'eslint.configPath';
 
 let provider = null;
 let assistantDisposable = null;
-let fixingSaveFiles = new Set(); // Track which files are currently being fixed
+let fixingEditors = new WeakMap(); // Track which editors are currently being fixed (with timeout)
 let disposables = []; // Track all disposables for cleanup
 let editorDisposables = new WeakMap(); // Track per-editor disposables
+
+// Constants for fix-on-save timing
+const FIX_ON_SAVE_TIMEOUT_MS = 5000; // Failsafe: force cleanup after 5 seconds
+// Note: These delays are necessary due to Nova's async editor behavior:
+// - EDIT_SETTLE_DELAY_MS: Nova's editor.edit() may not commit changes immediately,
+//   so we wait briefly before calling save() to ensure edits are applied
+// - SAVE_COMPLETE_DELAY_MS: Nova's onDidSave event fires during save operation,
+//   not after completion. We wait to prevent the fix cycle from re-triggering
+//   before the save event fully settles
+const EDIT_SETTLE_DELAY_MS = 10; // Wait for edit to commit before saving
+const SAVE_COMPLETE_DELAY_MS = 100; // Wait for save event to settle
 
 /**
  * Activate the extension
@@ -82,6 +93,13 @@ exports.deactivate = function () {
 };
 
 /**
+ * Check if editor is currently being fixed
+ */
+function isFixing(editor) {
+  return fixingEditors.has(editor);
+}
+
+/**
  * Register the issue assistant with appropriate event
  */
 function registerIssueAssistant() {
@@ -114,19 +132,19 @@ function setupFixOnSave() {
           return;
         }
 
-        const filePath = editor.document.path;
-
-        // Check if this file is already being fixed
-        if (fixingSaveFiles.has(filePath)) {
+        // Check if this editor is already being fixed
+        if (isFixing(editor)) {
           return;
         }
 
+        const filePath = editor.document.path;
+
         try {
-          fixingSaveFiles.add(filePath);
+          startFixing(editor);
 
           const fixedContent = await provider.runner.fix(filePath);
           if (!fixedContent) {
-            fixingSaveFiles.delete(filePath);
+            stopFixing(editor);
             return;
           }
 
@@ -135,7 +153,7 @@ function setupFixOnSave() {
           );
 
           if (currentContent === fixedContent) {
-            fixingSaveFiles.delete(filePath);
+            stopFixing(editor);
             return;
           }
 
@@ -143,33 +161,39 @@ function setupFixOnSave() {
             edit.replace(new Range(0, editor.document.length), fixedContent);
           });
 
+          // Wait for edit to commit before saving
           setTimeout(() => {
             // Validate editor is still valid before saving
             if (!editor.document) {
-              fixingSaveFiles.delete(filePath);
+              stopFixing(editor);
               return;
             }
 
             editor
               .save()
               .then(() => {
+                // Wait for save event to settle before cleaning up
                 setTimeout(() => {
-                  fixingSaveFiles.delete(filePath);
-                }, 100);
+                  stopFixing(editor);
+                }, SAVE_COMPLETE_DELAY_MS);
               })
               .catch(saveError => {
                 console.error('Failed to save after fix:', saveError);
-                fixingSaveFiles.delete(filePath);
+                stopFixing(editor);
               });
-          }, 10);
+          }, EDIT_SETTLE_DELAY_MS);
         } catch (error) {
           console.error('Fix on save error:', error);
-          fixingSaveFiles.delete(filePath);
+          stopFixing(editor);
         }
       });
 
       // Listen for editor destruction to clean up disposables
       const destroyDisposable = editor.onDidDestroy(() => {
+        // Clean up fix-on-save state
+        stopFixing(editor);
+
+        // Clean up disposables
         const disposable = editorDisposables.get(editor);
         if (disposable) {
           disposable.dispose();
@@ -183,4 +207,30 @@ function setupFixOnSave() {
       editorDisposables.set(editor, saveDisposable);
     }),
   );
+}
+
+/**
+ * Mark editor as fixing and set failsafe timeout
+ */
+function startFixing(editor) {
+  const timeoutId = setTimeout(() => {
+    console.warn(
+      'Fix-on-save timeout reached for',
+      editor.document?.path || 'unknown file',
+    );
+    stopFixing(editor);
+  }, FIX_ON_SAVE_TIMEOUT_MS);
+
+  fixingEditors.set(editor, timeoutId);
+}
+
+/**
+ * Stop fixing and clear timeout
+ */
+function stopFixing(editor) {
+  const timeoutId = fixingEditors.get(editor);
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+  }
+  fixingEditors.delete(editor);
 }
