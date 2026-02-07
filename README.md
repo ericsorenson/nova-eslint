@@ -28,6 +28,46 @@ npm run lint             # Check code style
 npm run lint:fix         # Auto-fix linting issues
 ```
 
+### Dependency Management
+
+The project uses [Renovate](https://docs.renovatebot.com/) for automated dependency updates:
+
+- **Automatic updates**: Minor and patch updates are auto-merged after CI passes
+- **Security alerts**: Security vulnerabilities are auto-merged immediately
+- **Grouped updates**: ESLint and Prettier packages are grouped together
+- **Schedule**: Updates run weekly on Mondays before 6am PT
+
+#### Option 1: GitHub App (Recommended)
+
+1. Install the [Renovate GitHub App](https://github.com/apps/renovate) on your repository
+2. Renovate will automatically detect the `renovate.json` configuration
+3. Pull requests for dependency updates will be created automatically
+
+#### Option 2: CLI (Local Testing)
+
+You can run Renovate locally to test configuration changes:
+
+```bash
+npm run renovate:config   # Validate renovate.json configuration
+npm run renovate          # Run Renovate locally (requires GITHUB_TOKEN)
+```
+
+To run Renovate CLI with GitHub:
+
+```bash
+export GITHUB_TOKEN=your_github_token
+npm run renovate
+```
+
+#### Manual Updates (Alternative)
+
+The project also includes npm-check-updates for manual dependency updates:
+
+```bash
+npm run update            # Check for updates and update package.json
+npm install               # Install updated dependencies
+```
+
 **Test Coverage:**
 
 Test coverage includes:

@@ -8,6 +8,8 @@
     "test:coverage": "node --test --experimental-test-coverage test/**/*.test.js",
     "lint": "eslint eslint.novaextension/**/*.js eslint.config.mjs",
     "lint:fix": "eslint --fix eslint.novaextension/**/*.js eslint.config.mjs",
+    "renovate": "renovate --platform=local",
+    "renovate:config": "renovate-config-validator",
     "update": "ncu -u"
   },
   "repository": {
@@ -30,5 +32,8 @@
     "eslint-plugin-prettier": "5.5.5",
     "npm-check-updates": "19.3.2",
     "prettier": "3.8.1"
+  },
+  "devDependencies": {
+    "renovate": "^42.96.2"
   }
 }

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":preserveSemverRanges"
+  ],
+  "schedule": [
+    "before 6am on Monday"
+  ],
+  "timezone": "America/Los_Angeles",
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash",
+      "platformAutomerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["breaking-change"],
+      "automerge": false
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "addLabels": ["dev-dependencies"]
+    },
+    {
+      "matchPackagePatterns": ["^eslint", "^@eslint/"],
+      "groupName": "ESLint and plugins"
+    },
+    {
+      "matchPackagePatterns": ["^prettier", "eslint-plugin-prettier", "eslint-config-prettier"],
+      "groupName": "Prettier and plugins"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": [
+      "before 6am on the first day of the month"
+    ]
+  },
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "semanticCommits": "enabled",
+  "branchPrefix": "renovate/",
+  "rangeStrategy": "update-lockfile"
+}
