@@ -150,9 +150,64 @@ describe('NovaProcessAdapter', () => {
     assert.strictEqual(adapter.activeProcesses.size, 0);
   });
 
-  // Note: Timeout behavior is tested implicitly through the real timeout mechanism
-  // in integration tests. Mocking setTimeout is complex due to interactions with
-  // process lifecycle, so we skip explicit unit testing of timeout logic here.
+  test('execute should timeout and terminate process after 30 seconds', async () => {
+    // Save originals
+    const originalSetTimeout = global.setTimeout;
+    const originalClearTimeout = global.clearTimeout;
+
+    let capturedTimeoutCallback;
+    let nextId = 1;
+
+    // Mock setTimeout to capture the timeout callback without waiting
+    global.setTimeout = (callback, ms) => {
+      if (ms === 30000) {
+        // This is the process timeout
+        capturedTimeoutCallback = callback;
+      }
+      return nextId++;
+    };
+
+    // Mock clearTimeout
+    global.clearTimeout = () => {};
+
+    try {
+      const promise = adapter.execute({
+        args: ['sleep', '100'],
+        command: '/usr/bin/env',
+        cwd: '/test',
+      });
+
+      // Store reference to the process
+      const process = mockProcess;
+
+      // Override terminate to NOT call exit callback
+      // This lets the timeout handler's settleOnce with error execute properly
+      process.terminate = function () {
+        this.terminated = true;
+      };
+
+      // Wait a tick for setup
+      await new Promise(resolve => originalSetTimeout(resolve, 10));
+
+      // Verify timeout was set up
+      assert.ok(capturedTimeoutCallback, 'Timeout callback should be captured');
+
+      // Trigger the timeout callback manually
+      capturedTimeoutCallback();
+
+      // Should reject with timeout error
+      await assert.rejects(promise, {
+        message: /Process timed out after 30000ms/,
+      });
+
+      // Verify process was terminated
+      assert.strictEqual(process.terminated, true);
+    } finally {
+      // Restore originals
+      global.setTimeout = originalSetTimeout;
+      global.clearTimeout = originalClearTimeout;
+    }
+  });
 
   test('execute should prevent double-resolution with settleOnce guard', async () => {
     const promise = adapter.execute({

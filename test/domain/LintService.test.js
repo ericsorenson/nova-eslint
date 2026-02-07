@@ -412,4 +412,154 @@ describe('Domain - LintService', () => {
     const cmd = processPort.executedCommands[0];
     assert.strictEqual(cmd.args[1], '/custom/eslint');
   });
+
+  test('should use custom config path when fixing', async () => {
+    const configPort = new MockConfigPort({
+      configPath: '/custom/.eslintrc.js',
+    });
+    const fileSystemPort = new MockFileSystemPort(
+      new Set(['/workspace/node_modules/.bin/eslint']),
+    );
+    const fixedContent = 'const foo = 1;\n';
+    const processPort = new MockProcessPort({
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
+        exitCode: 0,
+        stderr: '',
+        stdout: JSON.stringify([{ messages: [], output: fixedContent }]),
+      },
+    });
+
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
+
+    await service.fix('/workspace/test.js');
+
+    const cmd = processPort.executedCommands[0];
+    assert.ok(cmd.args.includes('--config'));
+    assert.ok(cmd.args.includes('/custom/.eslintrc.js'));
+  });
+
+  test('should throw error when fix fails with exit code 2', async () => {
+    const configPort = new MockConfigPort();
+    const fileSystemPort = new MockFileSystemPort(
+      new Set(['/workspace/node_modules/.bin/eslint']),
+    );
+    const processPort = new MockProcessPort({
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
+        exitCode: 2,
+        stderr: 'Configuration error',
+        stdout: '',
+      },
+    });
+
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
+
+    await assert.rejects(async () => await service.fix('/workspace/test.js'), {
+      message: /ESLint fix failed/,
+    });
+  });
+
+  test('should handle empty stdout in parseOutput', async () => {
+    const configPort = new MockConfigPort();
+    const fileSystemPort = new MockFileSystemPort(
+      new Set(['/workspace/node_modules/.bin/eslint']),
+    );
+    const processPort = new MockProcessPort({
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
+        exitCode: 0,
+        stderr: '',
+        stdout: '',
+      },
+    });
+
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
+
+    const request = createLintRequest({
+      content: null,
+      filePath: '/workspace/test.js',
+    });
+
+    const result = await service.lint(request);
+
+    assert.strictEqual(result.messages.length, 0);
+  });
+
+  test('should handle empty results array in parseOutput', async () => {
+    const configPort = new MockConfigPort();
+    const fileSystemPort = new MockFileSystemPort(
+      new Set(['/workspace/node_modules/.bin/eslint']),
+    );
+    const processPort = new MockProcessPort({
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
+        exitCode: 0,
+        stderr: '',
+        stdout: '[]',
+      },
+    });
+
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
+
+    const request = createLintRequest({
+      content: null,
+      filePath: '/workspace/test.js',
+    });
+
+    const result = await service.lint(request);
+
+    assert.strictEqual(result.messages.length, 0);
+  });
+
+  test('should throw error on invalid JSON in parseOutput', async () => {
+    const configPort = new MockConfigPort();
+    const fileSystemPort = new MockFileSystemPort(
+      new Set(['/workspace/node_modules/.bin/eslint']),
+    );
+    const processPort = new MockProcessPort({
+      [JSON.stringify({
+        args: ['node', '/workspace/node_modules/.bin/eslint', '--format'],
+      })]: {
+        exitCode: 0,
+        stderr: '',
+        stdout: 'invalid json{',
+      },
+    });
+
+    const service = new LintService({
+      configPort,
+      fileSystemPort,
+      processPort,
+    });
+
+    const request = createLintRequest({
+      content: null,
+      filePath: '/workspace/test.js',
+    });
+
+    await assert.rejects(async () => await service.lint(request), {
+      message: /Failed to parse ESLint output/,
+    });
+  });
 });
