@@ -25,11 +25,11 @@ class NovaProcessAdapter extends ProcessPort {
 
       let stdout = '';
       let stderr = '';
-      let settled = false;
+      let isSettled = false;
 
       const settleOnce = (exitCode, error = null) => {
-        if (settled) return;
-        settled = true;
+        if (isSettled) return;
+        isSettled = true;
 
         clearTimeout(timeoutId);
         this.activeProcesses.delete(process);
@@ -43,7 +43,7 @@ class NovaProcessAdapter extends ProcessPort {
 
       // Set up timeout
       const timeoutId = setTimeout(() => {
-        if (!settled) {
+        if (!isSettled) {
           process.terminate();
           settleOnce(
             -1,

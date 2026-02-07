@@ -107,8 +107,8 @@ describe('ESLintProvider - Bug Fix Tests', () => {
     const timeout1 = setTimeout(() => {}, 10000);
     const timeout2 = setTimeout(() => {}, 10000);
 
-    provider.pendingLints.set('file://test1.js', timeout1);
-    provider.pendingLints.set('file://test2.js', timeout2);
+    provider.pendingLints.set('file://test1.js', { requestId: 1, timeout: timeout1 });
+    provider.pendingLints.set('file://test2.js', { requestId: 2, timeout: timeout2 });
 
     assert.strictEqual(provider.pendingLints.size, 2);
 
