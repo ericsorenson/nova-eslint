@@ -1,10 +1,18 @@
 const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
-const { FixResult } = require('../../eslint.novaextension/Scripts/domain/fixResult.js');
-const { LintConfig } = require('../../eslint.novaextension/Scripts/domain/lintConfig.js');
-const { LintRequest } = require('../../eslint.novaextension/Scripts/domain/lintRequest.js');
-const { LintResult } = require('../../eslint.novaextension/Scripts/domain/lintResult.js');
+const {
+  FixResult,
+} = require('../../eslint.novaextension/Scripts/domain/FixResult.js');
+const {
+  LintConfig,
+} = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
+const {
+  LintRequest,
+} = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
+const {
+  LintResult,
+} = require('../../eslint.novaextension/Scripts/domain/LintResult.js');
 
 describe('Domain - LintConfig', () => {
   test('should create config with defaults', () => {
@@ -50,7 +58,10 @@ describe('Domain - LintRequest', () => {
       content: 'code',
       filePath: '/test.js',
     });
-    const withoutContent = new LintRequest({ content: null, filePath: '/test.js' });
+    const withoutContent = new LintRequest({
+      content: null,
+      filePath: '/test.js',
+    });
 
     assert.strictEqual(withContent.hasContent(), true);
     assert.strictEqual(withoutContent.hasContent(), false);

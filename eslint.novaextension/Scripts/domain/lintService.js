@@ -3,8 +3,8 @@
  * No dependencies on Nova API - uses ports for all external operations
  */
 
-const { FixResult } = require('./fixResult.js');
-const { LintResult } = require('./lintResult.js');
+const { FixResult } = require('./FixResult.js');
+const { LintResult } = require('./LintResult.js');
 
 /**
  * Service for executing ESLint operations

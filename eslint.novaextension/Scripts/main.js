@@ -1,8 +1,8 @@
 // Log immediately when script loads (before activation)
 console.log('ESLint main.js loaded');
 
-const ESLintProvider = require('./eslintProvider.js');
-const { FixOnSaveHandler } = require('./fixOnSaveHandler.js');
+const ESLintProvider = require('./EslintProvider.js');
+const { FixOnSaveHandler } = require('./FixOnSaveHandler.js');
 
 // Constants
 const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];

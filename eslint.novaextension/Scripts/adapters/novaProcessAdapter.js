@@ -3,7 +3,7 @@
  * Implements ProcessPort using Nova's Process API
  */
 
-const { ProcessPort } = require('../domain/ports.js');
+const { ProcessPort } = require('../domain/ProcessPort.js');
 
 const PROCESS_TIMEOUT_MS = 30000;
 

@@ -1,16 +1,14 @@
 const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
-const { LintService } = require('../../eslint.novaextension/Scripts/domain/lintService.js');
-const { FixResult } = require('../../eslint.novaextension/Scripts/domain/fixResult.js');
-const { LintConfig } = require('../../eslint.novaextension/Scripts/domain/lintConfig.js');
-const { LintRequest } = require('../../eslint.novaextension/Scripts/domain/lintRequest.js');
-const { LintResult } = require('../../eslint.novaextension/Scripts/domain/lintResult.js');
-const {
-  ConfigPort,
-  FileSystemPort,
-  ProcessPort,
-} = require('../../eslint.novaextension/Scripts/domain/ports.js');
+const { LintService } = require('../../eslint.novaextension/Scripts/domain/LintService.js');
+const { FixResult } = require('../../eslint.novaextension/Scripts/domain/FixResult.js');
+const { LintConfig } = require('../../eslint.novaextension/Scripts/domain/LintConfig.js');
+const { LintRequest } = require('../../eslint.novaextension/Scripts/domain/LintRequest.js');
+const { LintResult } = require('../../eslint.novaextension/Scripts/domain/LintResult.js');
+const { ConfigPort } = require('../../eslint.novaextension/Scripts/domain/ConfigPort.js');
+const { FileSystemPort } = require('../../eslint.novaextension/Scripts/domain/FileSystemPort.js');
+const { ProcessPort } = require('../../eslint.novaextension/Scripts/domain/ProcessPort.js');
 
 // Mock implementations
 class MockConfigPort extends ConfigPort {

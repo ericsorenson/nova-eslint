@@ -3,8 +3,8 @@
  * Implements ConfigPort using Nova's config API
  */
 
-const { LintConfig } = require('../domain/lintConfig.js');
-const { ConfigPort } = require('../domain/ports.js');
+const { LintConfig } = require('../domain/LintConfig.js');
+const { ConfigPort } = require('../domain/ConfigPort.js');
 
 class NovaConfigAdapter extends ConfigPort {
   getLintConfig() {

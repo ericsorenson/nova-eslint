@@ -49,7 +49,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('activeLints should be cleared on dispose', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     // Add some URIs to activeLints
@@ -64,7 +64,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('pendingResolvers should be called and cleared on dispose', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     let resolver1Called = false;
@@ -100,7 +100,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('pendingLints timeouts should be cleared on dispose', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     // Create fake timeouts
@@ -123,7 +123,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('pendingResolvers Map should be initialized', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     assert.ok(provider.pendingResolvers instanceof Map);
@@ -132,7 +132,7 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 
   test('runner.dispose should be called on provider dispose', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     let runnerDisposeCalled = false;
@@ -186,7 +186,7 @@ describe('ESLintProvider - handleError() Tests', () => {
       notificationAdded = request;
     };
 
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const error = new Error('ESLint executable not found in project');
@@ -207,7 +207,7 @@ describe('ESLintProvider - handleError() Tests', () => {
       notificationAdded = request;
     };
 
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const error = new Error('ESLint failed (exit 2): Configuration error');
@@ -227,7 +227,7 @@ describe('ESLintProvider - handleError() Tests', () => {
       notificationCount++;
     };
 
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const error = new Error('ESLint executable not found');
@@ -248,7 +248,7 @@ describe('ESLintProvider - handleError() Tests', () => {
       notificationCount++;
     };
 
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const error = new Error('ESLint executable not found');
@@ -300,7 +300,7 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
 
   test('should create Issue objects with correct properties', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const result = {
@@ -332,7 +332,7 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
 
   test('should handle empty or null results gracefully', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     assert.deepStrictEqual(provider.convertToIssues(null), []);
@@ -366,7 +366,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
   test('rapid calls should cancel previous pending lints', () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const editor = {
@@ -398,7 +398,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
   test('pendingLints should be cleared after lint completes', async () => {
     setupMocks();
-    const ESLintProvider = require('../eslint.novaextension/Scripts/eslintProvider.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
     const editor = {

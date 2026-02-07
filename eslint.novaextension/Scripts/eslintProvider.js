@@ -1,4 +1,4 @@
-const ESLintRunner = require('./eslintRunner.js');
+const ESLintRunner = require('./EslintRunner.js');
 const { convertESLintMessagesToIssues } = require('./eslintUtils.js');
 
 // Constants
