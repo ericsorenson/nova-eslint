@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
-describe('Main - Fix-on-Save Tracking Tests', () => {
+describe('FixOnSaveHandler - WeakMap Tracking Tests', () => {
   test('fixingEditors WeakMap should prevent simultaneous fixes on same editor', () => {
     // Simulate the fixingEditors WeakMap behavior
     const fixingEditors = new WeakMap();
