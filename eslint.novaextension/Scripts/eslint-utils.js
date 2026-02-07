@@ -64,34 +64,6 @@ function convertESLintMessagesToIssues(messages) {
 }
 
 /**
- * Find ESLint executable from candidate paths
- * @param {Object} fs - File system interface with stat() method
- * @param {string} workspacePath - Workspace root path
- * @param {Array<string>} candidates - Candidate relative paths
- * @returns {string|null} Full path to ESLint or null
- */
-function findESLintExecutable(fs, workspacePath, candidates) {
-  if (!workspacePath || !Array.isArray(candidates)) {
-    return null;
-  }
-
-  for (const candidate of candidates) {
-    const fullPath = `${workspacePath}/${candidate}`;
-    try {
-      const stat = fs.stat(fullPath);
-      if (stat) {
-        return fullPath;
-      }
-    } catch {
-      // File doesn't exist, try next candidate
-      continue;
-    }
-  }
-
-  return null;
-}
-
-/**
  * Parse ESLint JSON output
  * @param {string} jsonOutput - ESLint JSON output string
  * @returns {Object|null} Parsed result or null if invalid
@@ -116,6 +88,5 @@ function parseESLintOutput(jsonOutput) {
 
 module.exports = {
   convertESLintMessagesToIssues,
-  findESLintExecutable,
   parseESLintOutput,
 };

@@ -168,6 +168,18 @@ function setupFixOnSave() {
         }
       });
 
+      // Listen for editor destruction to clean up disposables
+      const destroyDisposable = editor.onDidDestroy(() => {
+        const disposable = editorDisposables.get(editor);
+        if (disposable) {
+          disposable.dispose();
+          editorDisposables.delete(editor);
+        }
+        if (destroyDisposable) {
+          destroyDisposable.dispose();
+        }
+      });
+
       editorDisposables.set(editor, saveDisposable);
     }),
   );

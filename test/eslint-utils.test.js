@@ -8,7 +8,6 @@ const { describe, test } = require('node:test');
 
 const {
   convertESLintMessagesToIssues,
-  findESLintExecutable,
   parseESLintOutput,
 } = require('../eslint.novaextension/Scripts/eslint-utils.js');
 
@@ -177,67 +176,3 @@ describe('parseESLintOutput', () => {
   });
 });
 
-describe('findESLintExecutable', () => {
-  test('should find ESLint in first matching candidate', () => {
-    const mockFs = {
-      stat: path => {
-        if (path === '/workspace/node_modules/.bin/eslint') {
-          return { isFile: true };
-        }
-        return null;
-      },
-    };
-
-    const result = findESLintExecutable(mockFs, '/workspace', [
-      'node_modules/.bin/eslint',
-      'node_modules/eslint/bin/eslint.js',
-    ]);
-
-    assert.equal(result, '/workspace/node_modules/.bin/eslint');
-  });
-
-  test('should try all candidates until one is found', () => {
-    const mockFs = {
-      stat: path => {
-        if (path === '/workspace/node_modules/eslint/bin/eslint.js') {
-          return { isFile: true };
-        }
-        return null;
-      },
-    };
-
-    const result = findESLintExecutable(mockFs, '/workspace', [
-      'node_modules/.bin/eslint',
-      'node_modules/eslint/bin/eslint.js',
-    ]);
-
-    assert.equal(result, '/workspace/node_modules/eslint/bin/eslint.js');
-  });
-
-  test('should return null if no candidates found', () => {
-    const mockFs = {
-      stat: () => null,
-    };
-
-    const result = findESLintExecutable(mockFs, '/workspace', [
-      'node_modules/.bin/eslint',
-      'node_modules/eslint/bin/eslint.js',
-    ]);
-
-    assert.equal(result, null);
-  });
-
-  test('should handle missing workspacePath', () => {
-    const mockFs = { stat: () => ({ isFile: true }) };
-
-    assert.equal(findESLintExecutable(mockFs, null, ['test']), null);
-    assert.equal(findESLintExecutable(mockFs, undefined, ['test']), null);
-  });
-
-  test('should handle invalid candidates', () => {
-    const mockFs = { stat: () => ({ isFile: true }) };
-
-    assert.equal(findESLintExecutable(mockFs, '/workspace', null), null);
-    assert.equal(findESLintExecutable(mockFs, '/workspace', undefined), null);
-  });
-});

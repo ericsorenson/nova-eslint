@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { describe, test } = require('node:test');
 
 describe('ESLintRunner - Bug Fix Tests', () => {
-  test('getConfigPath caching should distinguish undefined/null/string', () => {
+  test('getConfigPath caching should distinguish null and string values', () => {
     // Mock nova global
     global.nova = {
       path: {
@@ -18,21 +18,24 @@ describe('ESLintRunner - Bug Fix Tests', () => {
     const ESLintRunner = require('../eslint.novaextension/Scripts/eslint-runner.js');
     const runner = new ESLintRunner();
 
-    // Initially undefined (not cached)
-    assert.strictEqual(runner.cachedConfigPath, undefined);
+    // Initially not cached
+    assert.strictEqual(runner.configPathCached, false);
+    assert.strictEqual(runner.cachedConfigPath, null);
 
     // First call should cache null (no config)
     const result1 = runner.getConfigPath();
     assert.strictEqual(result1, null);
+    assert.strictEqual(runner.configPathCached, true);
     assert.strictEqual(runner.cachedConfigPath, null);
 
-    // Second call should return cached null
+    // Second call should return cached null without calling config.get
     const result2 = runner.getConfigPath();
     assert.strictEqual(result2, null);
 
     // Clear cache and test with a config path
     runner.clearCache();
-    assert.strictEqual(runner.cachedConfigPath, undefined);
+    assert.strictEqual(runner.configPathCached, false);
+    assert.strictEqual(runner.cachedConfigPath, null);
 
     // Mock with actual config
     global.nova.workspace.config.get = () => 'custom.config.js';
@@ -40,6 +43,7 @@ describe('ESLintRunner - Bug Fix Tests', () => {
 
     const result3 = runner.getConfigPath();
     assert.strictEqual(result3, '/test/custom.config.js');
+    assert.strictEqual(runner.configPathCached, true);
     assert.strictEqual(runner.cachedConfigPath, '/test/custom.config.js');
 
     // Should return cached value
@@ -79,7 +83,7 @@ describe('ESLintRunner - Bug Fix Tests', () => {
     assert.strictEqual(runner.activeProcesses.size, 0);
   });
 
-  test('clearCache should reset cachedConfigPath to undefined', () => {
+  test('clearCache should reset configPathCached flag', () => {
     global.nova = {
       path: { join: (a, b) => `${a}/${b}` },
       workspace: {
@@ -93,11 +97,13 @@ describe('ESLintRunner - Bug Fix Tests', () => {
 
     // Cache a value
     runner.getConfigPath();
-    assert.notStrictEqual(runner.cachedConfigPath, undefined);
+    assert.strictEqual(runner.configPathCached, true);
+    assert.notStrictEqual(runner.cachedConfigPath, null);
 
-    // Clear should set to undefined
+    // Clear should reset flag to false
     runner.clearCache();
-    assert.strictEqual(runner.cachedConfigPath, undefined);
+    assert.strictEqual(runner.configPathCached, false);
+    assert.strictEqual(runner.cachedConfigPath, null);
   });
 });
 
