@@ -24,6 +24,16 @@ class FixOnSaveHandler {
   }
 
   /**
+   * Add a pending timeout to track for cleanup
+   */
+  addPendingTimeout(editor, timeoutId) {
+    const state = this.fixingEditors.get(editor);
+    if (state) {
+      state.pending.push(timeoutId);
+    }
+  }
+
+  /**
    * Check if editor is currently being fixed
    */
   isFixing(editor) {
@@ -93,7 +103,9 @@ class FixOnSaveHandler {
 
               if (contentAfterSettle !== fixedContent) {
                 // User modified content during settle delay - don't save
-                console.log('Content changed during edit settle - skipping save');
+                console.log(
+                  'Content changed during edit settle - skipping save',
+                );
                 this.stopFixing(editor);
                 return;
               }
@@ -159,16 +171,6 @@ class FixOnSaveHandler {
       failsafe: timeoutId,
       pending: [], // Will hold edit settle and save complete timeouts
     });
-  }
-
-  /**
-   * Add a pending timeout to track for cleanup
-   */
-  addPendingTimeout(editor, timeoutId) {
-    const state = this.fixingEditors.get(editor);
-    if (state) {
-      state.pending.push(timeoutId);
-    }
   }
 
   /**
