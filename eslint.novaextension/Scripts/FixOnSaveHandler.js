@@ -20,7 +20,7 @@ const CONFIG_KEY_FIX_ON_SAVE = 'eslint.fixOnSave';
 class FixOnSaveHandler {
   constructor(provider) {
     this.provider = provider;
-    this.fixingEditors = new WeakMap(); // Track which editors are currently being fixed (with timeout)
+    this.fixingEditors = new WeakMap(); // Track which editors are currently being fixed (with timeout IDs)
   }
 
   /**
@@ -79,9 +79,21 @@ class FixOnSaveHandler {
             });
 
             // Wait for edit to commit before saving
-            setTimeout(() => {
+            const editSettleTimeout = setTimeout(() => {
               // Validate editor is still valid before saving
               if (!editor.document) {
+                this.stopFixing(editor);
+                return;
+              }
+
+              // Check if content changed during EDIT_SETTLE_DELAY
+              const contentAfterSettle = editor.document.getTextInRange(
+                new Range(0, editor.document.length),
+              );
+
+              if (contentAfterSettle !== fixedContent) {
+                // User modified content during settle delay - don't save
+                console.log('Content changed during edit settle - skipping save');
                 this.stopFixing(editor);
                 return;
               }
@@ -90,15 +102,19 @@ class FixOnSaveHandler {
                 .save()
                 .then(() => {
                   // Wait for save event to settle before cleaning up
-                  setTimeout(() => {
+                  const saveCompleteTimeout = setTimeout(() => {
                     this.stopFixing(editor);
                   }, SAVE_COMPLETE_DELAY_MS);
+
+                  this.addPendingTimeout(editor, saveCompleteTimeout);
                 })
                 .catch(saveError => {
                   console.error('Failed to save after fix:', saveError);
                   this.stopFixing(editor);
                 });
             }, EDIT_SETTLE_DELAY_MS);
+
+            this.addPendingTimeout(editor, editSettleTimeout);
           } catch (error) {
             console.error('Fix on save error:', error);
             this.stopFixing(editor);
@@ -138,16 +154,34 @@ class FixOnSaveHandler {
       this.stopFixing(editor);
     }, FIX_ON_SAVE_TIMEOUT_MS);
 
-    this.fixingEditors.set(editor, timeoutId);
+    // Store all timeout IDs for this editor
+    this.fixingEditors.set(editor, {
+      failsafe: timeoutId,
+      pending: [], // Will hold edit settle and save complete timeouts
+    });
   }
 
   /**
-   * Stop fixing and clear timeout
+   * Add a pending timeout to track for cleanup
+   */
+  addPendingTimeout(editor, timeoutId) {
+    const state = this.fixingEditors.get(editor);
+    if (state) {
+      state.pending.push(timeoutId);
+    }
+  }
+
+  /**
+   * Stop fixing and clear all timeouts
    */
   stopFixing(editor) {
-    const timeoutId = this.fixingEditors.get(editor);
-    if (timeoutId) {
-      clearTimeout(timeoutId);
+    const state = this.fixingEditors.get(editor);
+    if (state) {
+      // Clear failsafe timeout
+      clearTimeout(state.failsafe);
+
+      // Clear all pending timeouts
+      state.pending.forEach(timeoutId => clearTimeout(timeoutId));
     }
     this.fixingEditors.delete(editor);
   }
