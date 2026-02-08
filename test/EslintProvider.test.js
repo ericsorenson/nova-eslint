@@ -147,6 +147,11 @@ describe('ESLintProvider - Bug Fix Tests', () => {
 });
 
 describe('ESLintProvider - handleError() Tests', () => {
+  const {
+    ESLintConfigError,
+    ESLintNotFoundError,
+  } = require('../eslint.novaextension/Scripts/domain/errors/LintErrors.js');
+
   function setupMocks() {
     global.nova = {
       config: { get: () => true },
@@ -190,7 +195,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
-    const error = new Error('ESLint executable not found in project');
+    const error = new ESLintNotFoundError();
     provider.handleError(error, '/test');
 
     assert.ok(notificationAdded);
@@ -214,7 +219,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
-    const error = new Error('ESLint failed (exit 2): Configuration error');
+    const error = new ESLintConfigError('ESLint failed (exit 2): Configuration error');
     provider.handleError(error, '/test');
 
     assert.ok(notificationAdded);
@@ -237,7 +242,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
-    const error = new Error('ESLint executable not found');
+    const error = new ESLintNotFoundError();
 
     provider.handleError(error, '/test');
     assert.strictEqual(notificationCount, 1);
@@ -258,7 +263,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
-    const error = new Error('ESLint executable not found');
+    const error = new ESLintNotFoundError();
 
     // First error shows notification
     provider.handleError(error, '/test');
@@ -283,7 +288,7 @@ describe('ESLintProvider - handleError() Tests', () => {
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
-    const error = new Error('ESLint executable not found');
+    const error = new ESLintNotFoundError();
 
     // Workspace A has error - shows notification
     provider.handleError(error, '/workspace-a');
@@ -533,6 +538,11 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
 });
 
 describe('ESLintProvider - Debounce Behavior Tests', () => {
+  const {
+    ESLintConfigError,
+    ESLintNotFoundError,
+  } = require('../eslint.novaextension/Scripts/domain/errors/LintErrors.js');
+
   function setupMocks() {
     global.nova = {
       config: { get: () => true },
@@ -810,7 +820,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // Mock runner to throw error
     provider.runner.lint = () => {
-      return Promise.reject(new Error('ESLint not found'));
+      return Promise.reject(new ESLintNotFoundError());
     };
 
     const promise = provider.provideIssues(editor);

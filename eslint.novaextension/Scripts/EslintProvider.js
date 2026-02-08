@@ -1,3 +1,7 @@
+const {
+  ESLintConfigError,
+  ESLintNotFoundError,
+} = require('./domain/errors/LintErrors.js');
 const ESLintRunner = require('./EslintRunner.js');
 const {
   convertESLintMessagesToIssues,
@@ -92,11 +96,11 @@ class ESLintProvider {
   handleError(error, workspacePath = null) {
     let body, notificationId, title;
 
-    if (error.message.includes('not found')) {
+    if (error instanceof ESLintNotFoundError) {
       notificationId = NOTIFICATION_ID_NOT_FOUND;
       title = NOTIFICATION_TITLE_NOT_FOUND;
       body = NOTIFICATION_BODY_NOT_FOUND;
-    } else if (error.message.includes('failed')) {
+    } else if (error instanceof ESLintConfigError) {
       notificationId = NOTIFICATION_ID_CONFIG_ERROR;
       title = NOTIFICATION_TITLE_CONFIG_ERROR;
       body = error.message;

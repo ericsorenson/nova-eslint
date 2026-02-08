@@ -5,6 +5,11 @@
 
 const { createFixResult } = require('./models/FixResult.js');
 const { createLintResult } = require('./models/LintResult.js');
+const {
+  ESLintConfigError,
+  ESLintNotFoundError,
+  WorkspaceError,
+} = require('./errors/LintErrors.js');
 
 /**
  * Service for executing ESLint operations
@@ -92,7 +97,7 @@ class LintService {
     });
 
     if (result.exitCode === 2) {
-      throw new Error(`ESLint fix failed: ${result.stderr}`);
+      throw new ESLintConfigError(`ESLint fix failed: ${result.stderr}`);
     }
 
     const parsed = this.parseOutput(result.stdout);
@@ -115,7 +120,7 @@ class LintService {
     const workspacePath = this.configPort.getWorkspacePath();
 
     if (!workspacePath) {
-      throw new Error('ESLint requires a workspace to be open');
+      throw new WorkspaceError('ESLint requires a workspace to be open');
     }
 
     if (config.executablePath) {
@@ -132,7 +137,7 @@ class LintService {
       return this.cachedESLintPath;
     }
 
-    throw new Error('ESLint executable not found');
+    throw new ESLintNotFoundError('ESLint executable not found in project');
   }
 
   /**
@@ -154,7 +159,7 @@ class LintService {
     // Exit codes per ESLint docs: 0 = clean, 1 = lint errors (not a failure), 2 = fatal error
     // See https://eslint.org/docs/latest/use/command-line-interface/#exit-codes
     if (result.exitCode === 2) {
-      throw new Error(`ESLint failed: ${result.stderr}`);
+      throw new ESLintConfigError(`ESLint failed: ${result.stderr}`);
     }
 
     const parsed = this.parseOutput(result.stdout);
