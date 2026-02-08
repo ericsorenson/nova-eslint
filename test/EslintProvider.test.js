@@ -107,22 +107,17 @@ describe('ESLintProvider - Bug Fix Tests', () => {
     const timeout1 = setTimeout(() => {}, 10000);
     const timeout2 = setTimeout(() => {}, 10000);
 
-    provider.pendingLints.set('file://test1.js', {
-      requestId: 1,
-      timeout: timeout1,
-    });
-    provider.pendingLints.set('file://test2.js', {
-      requestId: 2,
-      timeout: timeout2,
-    });
+    // Track timeouts
+    provider.pendingTimeouts.add(timeout1);
+    provider.pendingTimeouts.add(timeout2);
 
-    assert.strictEqual(provider.pendingLints.size, 2);
+    assert.strictEqual(provider.pendingTimeouts.size, 2);
 
-    // Dispose should clear timeouts and the map
+    // Dispose should clear timeouts
     provider.dispose();
-    assert.strictEqual(provider.pendingLints.size, 0);
+    assert.strictEqual(provider.pendingTimeouts.size, 0);
 
-    // Clean up - clear the timeouts to prevent test hanging
+    // Timeouts should be cleared
     clearTimeout(timeout1);
     clearTimeout(timeout2);
   });
@@ -196,13 +191,16 @@ describe('ESLintProvider - handleError() Tests', () => {
     const provider = new ESLintProvider();
 
     const error = new Error('ESLint executable not found in project');
-    provider.handleError(error);
+    provider.handleError(error, '/test');
 
     assert.ok(notificationAdded);
     assert.strictEqual(notificationAdded.id, 'eslint-not-found');
     assert.strictEqual(notificationAdded.title, 'ESLint Not Found');
     assert.ok(notificationAdded.body.includes('npm install'));
-    assert.ok(provider.shownNotifications.has('eslint-not-found'));
+
+    // Check Map structure: workspace path -> Set of notification IDs
+    assert.ok(provider.shownNotifications.has('/test'));
+    assert.ok(provider.shownNotifications.get('/test').has('eslint-not-found'));
   });
 
   test('should show notification for "failed" config error', () => {
@@ -217,12 +215,15 @@ describe('ESLintProvider - handleError() Tests', () => {
     const provider = new ESLintProvider();
 
     const error = new Error('ESLint failed (exit 2): Configuration error');
-    provider.handleError(error);
+    provider.handleError(error, '/test');
 
     assert.ok(notificationAdded);
     assert.strictEqual(notificationAdded.id, 'eslint-config-error');
     assert.strictEqual(notificationAdded.title, 'ESLint Configuration Error');
-    assert.ok(provider.shownNotifications.has('eslint-config-error'));
+
+    // Check Map structure
+    assert.ok(provider.shownNotifications.has('/test'));
+    assert.ok(provider.shownNotifications.get('/test').has('eslint-config-error'));
   });
 
   test('should not show duplicate notifications', () => {
@@ -238,11 +239,11 @@ describe('ESLintProvider - handleError() Tests', () => {
 
     const error = new Error('ESLint executable not found');
 
-    provider.handleError(error);
+    provider.handleError(error, '/test');
     assert.strictEqual(notificationCount, 1);
 
     // Second call should not show notification
-    provider.handleError(error);
+    provider.handleError(error, '/test');
     assert.strictEqual(notificationCount, 1);
   });
 
@@ -260,15 +261,140 @@ describe('ESLintProvider - handleError() Tests', () => {
     const error = new Error('ESLint executable not found');
 
     // First error shows notification
-    provider.handleError(error);
+    provider.handleError(error, '/test');
     assert.strictEqual(notificationCount, 1);
 
-    // Simulate successful lint (would happen in provideIssues)
-    provider.shownNotifications.clear();
+    // Simulate successful lint for this workspace (would happen in provideIssues)
+    provider.shownNotifications.delete('/test');
 
     // New error should show notification again
-    provider.handleError(error);
+    provider.handleError(error, '/test');
     assert.strictEqual(notificationCount, 2);
+  });
+
+  test('should track notifications per workspace independently', () => {
+    setupMocks();
+    let notificationCount = 0;
+
+    global.nova.notifications.add = () => {
+      notificationCount++;
+    };
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const error = new Error('ESLint executable not found');
+
+    // Workspace A has error - shows notification
+    provider.handleError(error, '/workspace-a');
+    assert.strictEqual(notificationCount, 1);
+
+    // Workspace B also has error - shows separate notification
+    provider.handleError(error, '/workspace-b');
+    assert.strictEqual(notificationCount, 2);
+
+    // Workspace A succeeds - clears only A's tracking
+    provider.shownNotifications.delete('/workspace-a');
+
+    // Workspace B still fails - should NOT show notification again (already shown)
+    provider.handleError(error, '/workspace-b');
+    assert.strictEqual(notificationCount, 2);
+
+    // But A can fail again and show notification
+    provider.handleError(error, '/workspace-a');
+    assert.strictEqual(notificationCount, 3);
+  });
+
+  test('should handle split view - independent debouncing per editor', async () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const sharedUri = 'file://test/file.js';
+
+    // Two editors viewing the same file (split view)
+    const editor1 = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: sharedUri,
+      },
+    };
+
+    const editor2 = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: sharedUri,
+      },
+    };
+
+    // Mock runner
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    // Start lint in editor1
+    provider.provideIssues(editor1);
+
+    // Start lint in editor2 immediately (should NOT cancel editor1's debounce)
+    provider.provideIssues(editor2);
+
+    // Both should have separate pending timeouts (independent debouncing)
+    assert.strictEqual(provider.pendingTimeouts.size, 2);
+
+    // Both editors have their own pending lint data
+    const pending1 = provider.pendingLints.get(editor1);
+    const pending2 = provider.pendingLints.get(editor2);
+
+    assert.ok(pending1);
+    assert.ok(pending2);
+    assert.notStrictEqual(pending1.requestId, pending2.requestId);
+
+    // Clean up
+    provider.dispose();
+  });
+
+  test('should handle split view - typing in one editor does not cancel other', () => {
+    setupMocks();
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const sharedUri = 'file://test/file.js';
+
+    const editor1 = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: sharedUri,
+      },
+    };
+
+    const editor2 = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: sharedUri,
+      },
+    };
+
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    // User types in editor1
+    provider.provideIssues(editor1);
+    const requestId1 = provider.pendingLints.get(editor1).requestId;
+
+    // User types in editor2 (should not affect editor1)
+    provider.provideIssues(editor2);
+
+    // Editor1's request should still be pending
+    const pending1 = provider.pendingLints.get(editor1);
+    assert.ok(pending1);
+    assert.strictEqual(pending1.requestId, requestId1);
+
+    provider.dispose();
   });
 });
 
@@ -447,15 +573,15 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // First call
     provider.provideIssues(editor);
-    assert.strictEqual(provider.pendingLints.size, 1);
+    assert.strictEqual(provider.pendingTimeouts.size, 1);
 
     // Second call should cancel first
     provider.provideIssues(editor);
-    assert.strictEqual(provider.pendingLints.size, 1);
+    assert.strictEqual(provider.pendingTimeouts.size, 1);
 
     // Third call should cancel second
     provider.provideIssues(editor);
-    assert.strictEqual(provider.pendingLints.size, 1);
+    assert.strictEqual(provider.pendingTimeouts.size, 1);
 
     // Clean up
     provider.dispose();
@@ -480,14 +606,14 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     const promise = provider.provideIssues(editor);
 
-    // Should have pending lint
-    assert.strictEqual(provider.pendingLints.size, 1);
+    // Should have pending timeout
+    assert.strictEqual(provider.pendingTimeouts.size, 1);
 
     // Wait for debounce + execution
     await promise;
 
     // Should be cleared after completion
-    assert.strictEqual(provider.pendingLints.size, 0);
+    assert.strictEqual(provider.pendingTimeouts.size, 0);
     assert.strictEqual(provider.pendingResolvers.size, 0);
 
     // Clean up
@@ -734,7 +860,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
     const promise1 = provider.provideIssues(editor);
 
     // Get the requestId that was stored
-    const pending = provider.pendingLints.get('file://test/file.js');
+    const pending = provider.pendingLints.get(editor);
     const requestId = pending.requestId;
 
     // Manually delete the resolver to simulate edge case
@@ -768,7 +894,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // Delete resolver before timeout fires
     await new Promise(resolve => setTimeout(resolve, 100));
-    const pending = provider.pendingLints.get('file://test/file.js');
+    const pending = provider.pendingLints.get(editor);
     if (pending) {
       provider.pendingResolvers.delete(pending.requestId);
     }
@@ -803,7 +929,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // Delete resolver before timeout fires
     await new Promise(resolve => setTimeout(resolve, 100));
-    const pending = provider.pendingLints.get('file://test/file.js');
+    const pending = provider.pendingLints.get(editor);
     if (pending) {
       provider.pendingResolvers.delete(pending.requestId);
     }
@@ -834,7 +960,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // Delete resolver before lint completes
     await new Promise(resolve => setTimeout(resolve, 100));
-    const pending = provider.pendingLints.get('file://test/file.js');
+    const pending = provider.pendingLints.get(editor);
     if (pending) {
       provider.pendingResolvers.delete(pending.requestId);
     }
@@ -870,7 +996,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // Delete resolver before error occurs
     await new Promise(resolve => setTimeout(resolve, 100));
-    const pending = provider.pendingLints.get('file://test/file.js');
+    const pending = provider.pendingLints.get(editor);
     if (pending) {
       provider.pendingResolvers.delete(pending.requestId);
     }

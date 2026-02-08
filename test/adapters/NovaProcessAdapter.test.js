@@ -340,6 +340,49 @@ describe('NovaProcessAdapter', () => {
     await promise.catch(() => {});
   });
 
+  test('execute should reject new processes after dispose', async () => {
+    adapter.dispose();
+
+    const promise = adapter.execute({
+      args: ['node'],
+      command: '/usr/bin/env',
+      cwd: '/test',
+    });
+
+    await assert.rejects(promise, {
+      message: /Process adapter has been disposed/,
+    });
+  });
+
+  test('dispose should handle concurrent process exit safely', async () => {
+    // Create a process that will exit during dispose
+    const promise = adapter.execute({
+      args: ['node'],
+      command: '/usr/bin/env',
+      cwd: '/test',
+    });
+    const process = mockProcess;
+
+    // Override terminate to trigger exit callback (simulating concurrent exit)
+    const originalTerminate = process.terminate;
+    process.terminate = function () {
+      // Call exit callback before terminate completes
+      if (this.callbacks.exit) {
+        this.callbacks.exit(-1);
+      }
+      originalTerminate.call(this);
+    };
+
+    // Should handle this gracefully (no errors)
+    assert.doesNotThrow(() => {
+      adapter.dispose();
+    });
+
+    assert.strictEqual(adapter.activeProcesses.size, 0);
+
+    await promise.catch(() => {});
+  });
+
   test('execute should handle null stdin', async () => {
     const promise = adapter.execute({
       args: ['node'],
@@ -368,5 +411,69 @@ describe('NovaProcessAdapter', () => {
 
     mockProcess.callbacks.exit(0);
     await promise;
+  });
+
+  test('execute should handle stdin write failure', async () => {
+    // Override Process to provide a failing stdin writer
+    global.Process = class FailingStdinProcess extends global.Process {
+      constructor(command, options) {
+        super(command, options);
+        this.stdin = {
+          getWriter: () => ({
+            close: () => {},
+            ready: Promise.reject(new Error('Stdin not ready')),
+            write: () => {},
+          }),
+        };
+      }
+    };
+
+    adapter = new NovaProcessAdapter();
+
+    const promise = adapter.execute({
+      args: ['node'],
+      command: '/usr/bin/env',
+      cwd: '/test',
+      stdin: 'test content',
+    });
+
+    await assert.rejects(promise, {
+      message: /Failed to write stdin: Stdin not ready/,
+    });
+
+    assert.strictEqual(adapter.activeProcesses.size, 0);
+  });
+
+  test('execute should handle stdin writer close failure', async () => {
+    // Override Process to provide a writer that fails on close
+    global.Process = class FailingCloseProcess extends global.Process {
+      constructor(command, options) {
+        super(command, options);
+        this.stdin = {
+          getWriter: () => ({
+            close: () => {
+              throw new Error('Failed to close stdin');
+            },
+            ready: Promise.resolve(),
+            write: () => {},
+          }),
+        };
+      }
+    };
+
+    adapter = new NovaProcessAdapter();
+
+    const promise = adapter.execute({
+      args: ['node'],
+      command: '/usr/bin/env',
+      cwd: '/test',
+      stdin: 'test content',
+    });
+
+    await assert.rejects(promise, {
+      message: /Failed to write stdin: Failed to close stdin/,
+    });
+
+    assert.strictEqual(adapter.activeProcesses.size, 0);
   });
 });

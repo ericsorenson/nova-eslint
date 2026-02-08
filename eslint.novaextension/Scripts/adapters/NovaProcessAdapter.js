@@ -9,13 +9,18 @@ const PROCESS_TIMEOUT_MS = 30000;
 class NovaProcessAdapter {
   constructor() {
     this.activeProcesses = new Set();
+    this.disposed = false;
   }
 
   /**
    * Terminate all active processes
    */
   dispose() {
-    this.activeProcesses.forEach(process => {
+    this.disposed = true;
+
+    // Copy Set to array to avoid mutation during iteration
+    const processes = Array.from(this.activeProcesses);
+    processes.forEach(process => {
       try {
         process.terminate();
       } catch (error) {
@@ -26,6 +31,13 @@ class NovaProcessAdapter {
   }
 
   async execute({ args, command, cwd, stdin }) {
+    // Reject new processes if adapter has been disposed
+    if (this.disposed) {
+      return Promise.reject(
+        new Error('Process adapter has been disposed'),
+      );
+    }
+
     return new Promise((resolve, reject) => {
       const process = new Process(command, {
         args,
@@ -88,10 +100,17 @@ class NovaProcessAdapter {
         // Write stdin if provided
         if (stdin !== null && stdin !== undefined) {
           const writer = process.stdin.getWriter();
-          writer.ready.then(() => {
-            writer.write(stdin);
-            writer.close();
-          });
+          writer.ready
+            .then(() => {
+              writer.write(stdin);
+              writer.close();
+            })
+            .catch(error => {
+              settleOnce(
+                -1,
+                new Error(`Failed to write stdin: ${error.message}`),
+              );
+            });
         }
       } catch (error) {
         settleOnce(-1, new Error(`Failed to start process: ${error.message}`));
