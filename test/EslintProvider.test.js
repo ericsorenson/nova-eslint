@@ -310,6 +310,41 @@ describe('ESLintProvider - handleError() Tests', () => {
     assert.strictEqual(notificationCount, 3);
   });
 
+  test('should clear workspace notifications on successful lint', async () => {
+    setupMocks();
+
+    global.nova.workspace.path = '/test-workspace';
+
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const editor = {
+      document: {
+        isDirty: false,
+        length: 100,
+        path: '/test/file.js',
+        uri: 'file://test/file.js',
+      },
+    };
+
+    // Pre-populate notification state for this workspace
+    const workspacePath = '/test-workspace';
+    provider.shownNotifications.set(workspacePath, new Set(['eslint-not-found']));
+    assert.ok(provider.shownNotifications.has(workspacePath));
+
+    // Mock successful lint
+    provider.runner.lint = () => Promise.resolve({ messages: [] });
+
+    const promise = provider.provideIssues(editor);
+    await new Promise(resolve => setTimeout(resolve, 350)); // Wait for debounce
+    await promise;
+
+    // Notification state should be cleared for this workspace
+    assert.ok(!provider.shownNotifications.has(workspacePath));
+
+    provider.dispose();
+  });
+
   test('should handle split view - independent debouncing per editor', async () => {
     setupMocks();
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
@@ -650,6 +685,43 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
 
     // Should not show notification for unknown error
     assert.strictEqual(notificationAdded, false);
+
+    provider.dispose();
+  });
+
+  test('should use "global" context when both workspacePath and nova.workspace.path are null', () => {
+    setupMocks();
+
+    // Remove workspace path to test fallback to 'global'
+    global.nova.workspace.path = null;
+
+    let notificationAdded = null;
+    global.nova.notifications = {
+      add: request => {
+        notificationAdded = request;
+      },
+    };
+
+    const {
+      ESLintNotFoundError,
+    } = require('../eslint.novaextension/Scripts/domain/errors/LintErrors.js');
+    const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
+    const provider = new ESLintProvider();
+
+    const error = new ESLintNotFoundError();
+
+    // Call handleError without workspacePath parameter (undefined)
+    // Since nova.workspace.path is also null, should fall back to 'global'
+    provider.handleError(error);
+
+    // Should have shown notification
+    assert.ok(notificationAdded);
+
+    // Check that it used 'global' as the context key
+    assert.ok(provider.shownNotifications.has('global'));
+    assert.ok(
+      provider.shownNotifications.get('global').has('eslint-not-found'),
+    );
 
     provider.dispose();
   });
