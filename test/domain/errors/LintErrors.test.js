@@ -12,10 +12,7 @@ describe('Domain - LintErrors', () => {
     const error = new ESLintNotFoundError();
 
     assert.strictEqual(error.name, 'ESLintNotFoundError');
-    assert.strictEqual(
-      error.message,
-      'ESLint executable not found in project',
-    );
+    assert.strictEqual(error.message, 'ESLint executable not found in project');
     assert.ok(error instanceof Error);
     assert.ok(error instanceof ESLintNotFoundError);
   });

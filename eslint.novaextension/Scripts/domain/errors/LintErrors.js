@@ -5,22 +5,22 @@
  */
 
 /**
- * Thrown when ESLint executable is not found in the project
- */
-class ESLintNotFoundError extends Error {
-  constructor(message = 'ESLint executable not found in project') {
-    super(message);
-    this.name = 'ESLintNotFoundError';
-  }
-}
-
-/**
  * Thrown when ESLint configuration fails (exit code 2)
  */
 class ESLintConfigError extends Error {
   constructor(message = 'ESLint configuration error') {
     super(message);
     this.name = 'ESLintConfigError';
+  }
+}
+
+/**
+ * Thrown when ESLint executable is not found in the project
+ */
+class ESLintNotFoundError extends Error {
+  constructor(message = 'ESLint executable not found in project') {
+    super(message);
+    this.name = 'ESLintNotFoundError';
   }
 }
 

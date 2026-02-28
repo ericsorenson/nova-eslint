@@ -33,9 +33,7 @@ class NovaProcessAdapter {
   async execute({ args, command, cwd, stdin }) {
     // Reject new processes if adapter has been disposed
     if (this.disposed) {
-      return Promise.reject(
-        new Error('Process adapter has been disposed'),
-      );
+      return Promise.reject(new Error('Process adapter has been disposed'));
     }
 
     return new Promise((resolve, reject) => {

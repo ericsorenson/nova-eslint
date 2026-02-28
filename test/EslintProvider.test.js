@@ -219,7 +219,9 @@ describe('ESLintProvider - handleError() Tests', () => {
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
     const provider = new ESLintProvider();
 
-    const error = new ESLintConfigError('ESLint failed (exit 2): Configuration error');
+    const error = new ESLintConfigError(
+      'ESLint failed (exit 2): Configuration error',
+    );
     provider.handleError(error, '/test');
 
     assert.ok(notificationAdded);
@@ -228,7 +230,9 @@ describe('ESLintProvider - handleError() Tests', () => {
 
     // Check Map structure
     assert.ok(provider.shownNotifications.has('/test'));
-    assert.ok(provider.shownNotifications.get('/test').has('eslint-config-error'));
+    assert.ok(
+      provider.shownNotifications.get('/test').has('eslint-config-error'),
+    );
   });
 
   test('should not show duplicate notifications', () => {
@@ -329,7 +333,10 @@ describe('ESLintProvider - handleError() Tests', () => {
 
     // Pre-populate notification state for this workspace
     const workspacePath = '/test-workspace';
-    provider.shownNotifications.set(workspacePath, new Set(['eslint-not-found']));
+    provider.shownNotifications.set(
+      workspacePath,
+      new Set(['eslint-not-found']),
+    );
     assert.ok(provider.shownNotifications.has(workspacePath));
 
     // Mock successful lint
@@ -511,7 +518,10 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
     assert.deepStrictEqual(provider.convertToIssues(undefined), []);
     assert.deepStrictEqual(provider.convertToIssues({}), []);
     assert.deepStrictEqual(provider.convertToIssues({ messages: null }), []);
-    assert.deepStrictEqual(provider.convertToIssues({ messages: undefined }), []);
+    assert.deepStrictEqual(
+      provider.convertToIssues({ messages: undefined }),
+      [],
+    );
     assert.deepStrictEqual(provider.convertToIssues({ messages: [] }), []);
   });
 
@@ -569,7 +579,6 @@ describe('ESLintProvider - convertToIssues() Tests', () => {
     assert.strictEqual(issues[0].endLine, undefined);
     assert.strictEqual(issues[0].endColumn, undefined);
   });
-
 });
 
 describe('ESLintProvider - Debounce Behavior Tests', () => {

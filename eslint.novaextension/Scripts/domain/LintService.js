@@ -3,13 +3,13 @@
  * No dependencies on Nova API - uses ports for all external operations
  */
 
-const { createFixResult } = require('./models/FixResult.js');
-const { createLintResult } = require('./models/LintResult.js');
 const {
   ESLintConfigError,
   ESLintNotFoundError,
   WorkspaceError,
 } = require('./errors/LintErrors.js');
+const { createFixResult } = require('./models/FixResult.js');
+const { createLintResult } = require('./models/LintResult.js');
 
 /**
  * Service for executing ESLint operations
@@ -188,7 +188,9 @@ class LintService {
         output: firstResult.output || null,
       };
     } catch (error) {
-      throw new Error(`Failed to parse ESLint output: ${error.message}`);
+      throw new Error(`Failed to parse ESLint output: ${error.message}`, {
+        cause: error,
+      });
     }
   }
 }

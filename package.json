@@ -6,8 +6,8 @@
   "scripts": {
     "test": "node --test 'test/**/*.test.js'",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-exclude='test/**' 'test/**/*.test.js'",
-    "lint": "eslint eslint.novaextension/**/*.js test/**/*.js eslint.config.mjs",
-    "lint:fix": "eslint --fix eslint.novaextension/**/*.js test/**/*.js eslint.config.mjs",
+    "lint": "eslint eslint.novaextension test eslint.config.mjs",
+    "lint:fix": "eslint --fix eslint.novaextension test eslint.config.mjs",
     "renovate": "renovate --platform=local",
     "renovate:config": "renovate-config-validator",
     "update": "ncu -u"

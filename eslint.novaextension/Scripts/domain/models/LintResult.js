@@ -18,20 +18,20 @@ function createLintResult({ filePath, messages }) {
     filePath,
 
     /**
-     * ESLint diagnostic messages from the lint operation
-     * @type {Array<Object>}
-     * Each message has shape: { line, column, message, severity, ruleId?, endLine?, endColumn? }
-     * Empty array means no linting issues found
-     */
-    messages: resultMessages,
-
-    /**
      * Check if this result contains any lint messages
      * @returns {boolean} True if there are lint messages, false if file is clean
      */
     hasMessages() {
       return resultMessages.length > 0;
     },
+
+    /**
+     * ESLint diagnostic messages from the lint operation
+     * @type {Array<Object>}
+     * Each message has shape: { line, column, message, severity, ruleId?, endLine?, endColumn? }
+     * Empty array means no linting issues found
+     */
+    messages: resultMessages,
   };
 }
 

@@ -8,7 +8,7 @@ class NovaFilesystemAdapter {
   exists(path) {
     try {
       return nova.fs.access(path, nova.fs.constants.F_OK);
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

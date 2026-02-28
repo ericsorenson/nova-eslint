@@ -15,7 +15,6 @@ describe('main.js - Extension Lifecycle Tests', () => {
 
     // Setup Nova API mocks
     mockAssistants = {
-      registerIssueAssistantCalls: [],
       registerIssueAssistant: function (languages, provider, options) {
         this.registerIssueAssistantCalls.push({
           languages,
@@ -29,11 +28,10 @@ describe('main.js - Extension Lifecycle Tests', () => {
           disposed: false,
         };
       },
+      registerIssueAssistantCalls: [],
     };
 
     mockWorkspace = {
-      configObservers: [],
-      onDidAddTextEditorCallbacks: [],
       config: {
         onDidChange: (key, callback) => {
           const observer = { callback, key };
@@ -48,12 +46,14 @@ describe('main.js - Extension Lifecycle Tests', () => {
           };
         },
       },
+      configObservers: [],
       onDidAddTextEditor: callback => {
         mockWorkspace.onDidAddTextEditorCallbacks.push(callback);
         return {
           dispose: () => {},
         };
       },
+      onDidAddTextEditorCallbacks: [],
       path: '/test/workspace',
     };
 
@@ -143,10 +143,7 @@ describe('main.js - Extension Lifecycle Tests', () => {
     const workspaceObserversBefore = mockWorkspace.configObservers.length;
 
     assert.ok(configObserversBefore > 0, 'Should have config observers');
-    assert.ok(
-      workspaceObserversBefore > 0,
-      'Should have workspace observers',
-    );
+    assert.ok(workspaceObserversBefore > 0, 'Should have workspace observers');
 
     main.deactivate();
 
@@ -163,10 +160,7 @@ describe('main.js - Extension Lifecycle Tests', () => {
     );
 
     // Assistant should be disposed
-    assert.strictEqual(
-      mockAssistants.registerIssueAssistantCalls.length,
-      1,
-    );
+    assert.strictEqual(mockAssistants.registerIssueAssistantCalls.length, 1);
   });
 
   test('deactivate should be idempotent', () => {
