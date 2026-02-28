@@ -4,7 +4,7 @@
  * @implements {FileSystemPort}
  */
 
-class NovaFileSystemAdapter {
+class NovaFilesystemAdapter {
   exists(path) {
     try {
       return nova.fs.access(path, nova.fs.constants.F_OK);
@@ -23,4 +23,4 @@ class NovaFileSystemAdapter {
   }
 }
 
-module.exports = { NovaFileSystemAdapter };
+module.exports = { NovaFilesystemAdapter };

@@ -105,7 +105,8 @@ class ESLintProvider {
       title = NOTIFICATION_TITLE_CONFIG_ERROR;
       body = error.message;
     } else {
-      return; // Unknown error type, don't notify
+      console.error('Unhandled lint error:', error);
+      return;
     }
 
     // Get workspace path (fallback to global if not provided)

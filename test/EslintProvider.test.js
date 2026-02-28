@@ -665,7 +665,7 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
     provider.dispose();
   });
 
-  test('should not notify on unknown error type', () => {
+  test('should not notify on unknown error type but should log it', () => {
     setupMocks();
 
     // Track notification calls
@@ -674,6 +674,13 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
       add: () => {
         notificationAdded = true;
       },
+    };
+
+    // Track console.error calls
+    const originalConsoleError = console.error;
+    let consoleErrorArgs = null;
+    console.error = (...args) => {
+      consoleErrorArgs = args;
     };
 
     const ESLintProvider = require('../eslint.novaextension/Scripts/EslintProvider.js');
@@ -686,6 +693,12 @@ describe('ESLintProvider - Debounce Behavior Tests', () => {
     // Should not show notification for unknown error
     assert.strictEqual(notificationAdded, false);
 
+    // Should log the error via console.error
+    assert.ok(consoleErrorArgs);
+    assert.strictEqual(consoleErrorArgs[0], 'Unhandled lint error:');
+    assert.strictEqual(consoleErrorArgs[1], unknownError);
+
+    console.error = originalConsoleError;
     provider.dispose();
   });
 

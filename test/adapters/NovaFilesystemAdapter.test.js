@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { beforeEach, describe, test } = require('node:test');
 
 const {
-  NovaFileSystemAdapter,
+  NovaFilesystemAdapter,
 } = require('../../eslint.novaextension/Scripts/adapters/NovaFilesystemAdapter.js');
 
 describe('NovaFilesystemAdapter', () => {
@@ -41,7 +41,7 @@ describe('NovaFilesystemAdapter', () => {
       fs: mockFs,
     };
 
-    adapter = new NovaFileSystemAdapter();
+    adapter = new NovaFilesystemAdapter();
   });
 
   test('exists should return true when file exists', () => {

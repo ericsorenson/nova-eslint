@@ -14,12 +14,12 @@ const FIX_ON_SAVE_TIMEOUT_MS = 5000; // Failsafe: force cleanup after 5 seconds
 const EDIT_SETTLE_DELAY_MS = 10; // Wait for edit to commit before saving
 const SAVE_COMPLETE_DELAY_MS = 100; // Wait for save event to settle
 
-const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];
 const CONFIG_KEY_FIX_ON_SAVE = 'eslint.fixOnSave';
 
 class FixOnSaveHandler {
-  constructor(provider) {
+  constructor(provider, supportedLanguages) {
     this.provider = provider;
+    this.supportedLanguages = supportedLanguages;
     this.fixingEditors = new WeakMap(); // Track which editors are currently being fixed (with timeout IDs)
   }
 
@@ -53,7 +53,7 @@ class FixOnSaveHandler {
         const saveDisposable = editor.onDidSave(async editor => {
           if (!nova.config.get(CONFIG_KEY_FIX_ON_SAVE, 'boolean')) return;
           if (!editor.document.path) return;
-          if (!SUPPORTED_LANGUAGES.includes(editor.document.syntax)) return;
+          if (!this.supportedLanguages.includes(editor.document.syntax)) return;
           if (!this.provider || !this.provider.runner) {
             console.error('Provider not initialized');
             return;

@@ -29,7 +29,7 @@ exports.activate = function () {
   registerIssueAssistant();
 
   // Set up fix-on-save handler
-  fixOnSaveHandler = new FixOnSaveHandler(provider);
+  fixOnSaveHandler = new FixOnSaveHandler(provider, SUPPORTED_LANGUAGES);
   fixOnSaveHandler.setupFixOnSave(disposables, editorDisposables);
 
   // Watch for configuration changes

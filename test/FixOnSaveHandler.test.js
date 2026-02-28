@@ -89,6 +89,8 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
     FixOnSaveHandler,
   } = require('../eslint.novaextension/Scripts/FixOnSaveHandler.js');
 
+  const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];
+
   function setupMocks() {
     global.nova = {
       config: {
@@ -126,7 +128,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -175,7 +177,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -216,7 +218,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -247,7 +249,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
   test('should skip fix when provider not initialized', async () => {
     setupMocks();
 
-    const handler = new FixOnSaveHandler(null); // No provider
+    const handler = new FixOnSaveHandler(null, SUPPORTED_LANGUAGES); // No provider
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -291,7 +293,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -340,7 +342,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -408,7 +410,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -462,7 +464,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -507,7 +509,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -554,7 +556,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -625,7 +627,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -667,7 +669,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -713,7 +715,7 @@ describe('FixOnSaveHandler - Fix-on-Save Integration Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -767,9 +769,11 @@ describe('FixOnSaveHandler - Timeout Tracking Tests', () => {
     FixOnSaveHandler,
   } = require('../eslint.novaextension/Scripts/FixOnSaveHandler.js');
 
+  const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];
+
   test('startFixing should track failsafe timeout', () => {
     const mockProvider = {};
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const editor = { document: { path: '/test/file.js' } };
 
     handler.startFixing(editor);
@@ -786,7 +790,7 @@ describe('FixOnSaveHandler - Timeout Tracking Tests', () => {
 
   test('stopFixing should clear all timeouts', () => {
     const mockProvider = {};
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const editor = { document: { path: '/test/file.js' } };
 
     handler.startFixing(editor);
@@ -813,7 +817,7 @@ describe('FixOnSaveHandler - Timeout Tracking Tests', () => {
 
   test('addPendingTimeout should track additional timeouts', () => {
     const mockProvider = {};
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const editor = { document: { path: '/test/file.js' } };
 
     handler.startFixing(editor);
@@ -844,7 +848,7 @@ describe('FixOnSaveHandler - Timeout Tracking Tests', () => {
 
   test('stopFixing should be safe to call multiple times', () => {
     const mockProvider = {};
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const editor = { document: { path: '/test/file.js' } };
 
     handler.startFixing(editor);
@@ -864,7 +868,7 @@ describe('FixOnSaveHandler - Timeout Tracking Tests', () => {
 
   test('addPendingTimeout should handle editor not in fixing state', () => {
     const mockProvider = {};
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const editor = { document: { path: '/test/file.js' } };
 
     // Try to add timeout without starting fix
@@ -881,7 +885,7 @@ describe('FixOnSaveHandler - Timeout Tracking Tests', () => {
   test('failsafe timeout should fire and clean up', async () => {
     // Reduce timeout for testing
     const mockProvider = {};
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
 
     const editor = {
       document: { path: '/test/file.js' },
@@ -907,6 +911,8 @@ describe('FixOnSaveHandler - Edge Case Coverage Tests', () => {
   const {
     FixOnSaveHandler,
   } = require('../eslint.novaextension/Scripts/FixOnSaveHandler.js');
+
+  const SUPPORTED_LANGUAGES = ['javascript', 'typescript', 'jsx', 'tsx'];
 
   function setupMocks() {
     global.nova = {
@@ -940,7 +946,7 @@ describe('FixOnSaveHandler - Edge Case Coverage Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -999,7 +1005,7 @@ describe('FixOnSaveHandler - Edge Case Coverage Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 
@@ -1052,7 +1058,7 @@ describe('FixOnSaveHandler - Edge Case Coverage Tests', () => {
       },
     };
 
-    const handler = new FixOnSaveHandler(mockProvider);
+    const handler = new FixOnSaveHandler(mockProvider, SUPPORTED_LANGUAGES);
     const disposables = [];
     const editorDisposables = new WeakMap();
 

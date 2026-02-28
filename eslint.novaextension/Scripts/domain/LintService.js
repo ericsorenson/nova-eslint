@@ -86,7 +86,6 @@ class LintService {
    * @returns {Promise<FixResult>}
    */
   async fix(filePath) {
-    const eslintPath = this.getESLintPath();
     const args = this.buildFixArgs(filePath);
 
     const result = await this.processPort.execute({
@@ -146,7 +145,6 @@ class LintService {
    * @returns {Promise<LintResult>}
    */
   async lint(request) {
-    const eslintPath = this.getESLintPath();
     const args = this.buildLintArgs(request);
 
     const result = await this.processPort.execute({

@@ -5,7 +5,7 @@
 
 const { NovaConfigAdapter } = require('./adapters/NovaConfigAdapter.js');
 const {
-  NovaFileSystemAdapter,
+  NovaFilesystemAdapter,
 } = require('./adapters/NovaFilesystemAdapter.js');
 const { NovaProcessAdapter } = require('./adapters/NovaProcessAdapter.js');
 const { LintService } = require('./domain/LintService.js');
@@ -15,7 +15,7 @@ class ESLintRunner {
   constructor() {
     // Create adapters
     const configPort = new NovaConfigAdapter();
-    const fileSystemPort = new NovaFileSystemAdapter();
+    const fileSystemPort = new NovaFilesystemAdapter();
     const processPort = new NovaProcessAdapter();
 
     // Create service with adapters
